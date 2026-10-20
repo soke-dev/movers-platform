@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Icon, Empty, PayChip, useAuth, displayName, naira, fmtDay, fmtTime, dueText, dayNum, monShort, SPACE_URL } from '@movers/ui';
+import { Icon, Empty, PayChip, useAuth, displayName, naira, fmtDay, fmtTime, dueText, dayNum, monShort } from '@movers/ui';
 import { useLearn } from './Dashboard.jsx';
 import { PayModal, QuizModal, SubmitModal, CancelPayModal } from './modals.jsx';
 
@@ -61,7 +61,7 @@ export default function Overview() {
         <Link to="/dashboard/payments"><span className="qi" style={{ background: 'var(--pink)', color: '#fff' }}><Icon name="wallet" /></span>Pay fees</Link>
         <Link to="/dashboard/tasks"><span className="qi" style={{ background: 'var(--violet)', color: '#fff' }}><Icon name="quiz" /></span>Quizzes</Link>
         <Link to="/dashboard/attendance"><span className="qi" style={{ background: 'var(--lime)' }}><Icon name="calendar" /></span>Attendance</Link>
-        <a href={`${SPACE_URL}/dashboard/book`}><span className="qi" style={{ background: 'var(--amber)' }}><Icon name="laptop" /></span>Book a desk</a>
+        <Link to="/dashboard/classes"><span className="qi" style={{ background: 'var(--amber)' }}><Icon name="layers" /></span>My classes</Link>
       </div>
       <div className="panel attn">
         <div className="panel-h"><h2>Needs your attention</h2>{items.length > 0 && <span className="count">{items.length} to do</span>}</div>
