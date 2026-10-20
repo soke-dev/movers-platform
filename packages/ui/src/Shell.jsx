@@ -5,14 +5,22 @@ import { Logo } from './Logo.jsx';
 import { Modal } from './Modal.jsx';
 import { useAuth } from './auth.jsx';
 import { Avatar, ThemeToggle } from './theme.jsx';
+import { useNotifications, BellButton, NotificationsPanel } from './Notifications.jsx';
 
 /**
  * Dashboard layout: sidebar on desktop, app bar and bottom tabs on phones.
  * nav: [{ to, label, icon, badge, group }]; tabs: [{ to, label, icon, dot }] (max 4, a "More" tab is added).
  * profile: the profile page's path, which the account box links to.
+ * site: "learn" or "space" shows the notifications bell for that site.
  */
-export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, cross, home = '/', profile, children }) {
+export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, cross, home = '/', profile, site, children }) {
   const { user, logout } = useAuth();
+  const notes = useNotifications(site);
+  const [bell, setBell] = useState(false);
+  const openBell = () => {
+    setBell(true);
+    notes.markSeen();
+  };
   const [more, setMore] = useState(false);
   const [account, setAccount] = useState(false);
   const navigate = useNavigate();
@@ -24,7 +32,10 @@ export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, 
   return (
     <div className={`d-shell has-tabs ${theme}`}>
       <aside className="d-side">
-        <Link className="brand" to={home}><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
+        <div className="d-brandrow">
+          <Link className="brand" to={home}><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
+          {site && <BellButton unread={notes.unread} onClick={openBell} />}
+        </div>
         <nav className="d-nav">
           {nav.map((n) =>
             n.group ? <span className="grp" key={n.group}>{n.group}</span> : (
@@ -47,6 +58,7 @@ export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, 
       <header className="d-appbar">
         <Link className="brand" to={home}><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
         <span className="row" style={{ gap: 8 }}>
+          {site && <BellButton unread={notes.unread} onClick={openBell} />}
           <ThemeToggle className="btn ghost sm" />
           <button className="avatar-btn" onClick={() => setAccount(true)} aria-label="Account"><Avatar user={user} /></button>
         </span>
@@ -69,6 +81,7 @@ export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, 
           </div>
         </Modal>
       )}
+      {bell && <NotificationsPanel site={site} items={notes.items} onClose={() => setBell(false)} />}
       {account && (
         <Modal title={user?.name} onClose={() => setAccount(false)}>
           <p className="small" style={{ marginTop: 6 }}>{user?.username ? `@${user.username} · ` : ''}{user?.email}</p>

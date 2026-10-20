@@ -26,7 +26,7 @@ export default function Classes() {
   };
   return (
     <div className="pg">
-      <div className="pg-h"><div><p className="eyebrow">Movers Learn</p><h1>My classes</h1><p className="desc">The classes you’ve joined, and the next one you can sign up for.</p></div></div>
+      <div className="pg-h"><div><p className="eyebrow">Movers Learn</p><h1>Class</h1><p className="desc">Your class, and the next one you can sign up for.</p></div></div>
 
       {open && (
         <div className="panel cls">

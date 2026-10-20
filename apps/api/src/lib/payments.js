@@ -3,6 +3,7 @@ import { env } from '../env.js';
 import { bad, HttpError, makeRef, naira, waLink } from './util.js';
 import { createCheckout, getCheckout, moneyMovesEnabled } from './moneymoves.js';
 import { sendReceiptEmail } from './email.js';
+import { notify, siteForPurpose } from './notify.js';
 
 export const PREFIX = { ENROLLMENT: 'MVL', BOOKING: 'MVS', PASS: 'MVS', OTHER: 'MV' };
 
@@ -86,6 +87,7 @@ export async function markPaid(paymentId, staffId, method) {
   });
   await syncTarget(p);
   sendReceiptEmail(p.user, p).catch((e) => console.error('Receipt email failed', e));
+  notify(p.userId, { title: `Payment received: ${naira(p.amount)}`, body: `${p.description} · ref ${p.reference}`, site: siteForPurpose(p.purpose), path: '/dashboard/payments' });
   return p;
 }
 

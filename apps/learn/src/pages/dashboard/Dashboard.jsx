@@ -9,7 +9,7 @@ export default function Dashboard() {
   const d = data ? derive(data) : null;
   const nav = [
     { to: '/dashboard', end: true, label: 'Overview', icon: 'home' },
-    { to: '/dashboard/classes', label: 'My classes', icon: 'layers' },
+    { to: '/dashboard/classes', label: 'Class', icon: 'layers' },
     { to: '/dashboard/course', label: 'My course', icon: 'book' },
     { to: '/dashboard/tasks', label: 'Quizzes & tasks', icon: 'quiz', badge: d?.todo.length ? `${d.todo.length} to do` : null },
     { to: '/dashboard/attendance', label: 'Attendance', icon: 'calendar' },
@@ -32,7 +32,7 @@ export default function Dashboard() {
     </div>
   );
   return (
-    <DashShell word="learn" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile">
+    <DashShell word="learn" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile" site="learn">
       {loading && !data ? <Loading /> : error ? <ErrorBox error={error} retry={reload} /> : <Outlet context={{ data, d, reload }} />}
     </DashShell>
   );

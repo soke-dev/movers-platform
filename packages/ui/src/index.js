@@ -9,6 +9,7 @@ export { AuthProvider, useAuth, RequireAuth, storedRef } from './auth.jsx';
 export { LoginForm, RegisterForm, SocialButtons, VerifyCode, Password, PhoneNG, phoneDigits, MIN_PASSWORD } from './AuthForms.jsx';
 export { ProfilePage } from './Profile.jsx';
 export { ThemeToggle, Avatar, getTheme, setTheme } from './theme.jsx';
+export { useNotifications, BellButton, NotificationsPanel } from './Notifications.jsx';
 export { ReferPage } from './Refer.jsx';
 export { PayFlow } from './PayFlow.jsx';
 export { QR } from './QR.jsx';

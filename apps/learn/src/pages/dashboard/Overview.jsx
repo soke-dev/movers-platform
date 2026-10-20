@@ -61,7 +61,7 @@ export default function Overview() {
         <Link to="/dashboard/payments"><span className="qi" style={{ background: 'var(--pink)', color: '#fff' }}><Icon name="wallet" /></span>Pay fees</Link>
         <Link to="/dashboard/tasks"><span className="qi" style={{ background: 'var(--violet)', color: '#fff' }}><Icon name="quiz" /></span>Quizzes</Link>
         <Link to="/dashboard/attendance"><span className="qi" style={{ background: 'var(--lime)' }}><Icon name="calendar" /></span>Attendance</Link>
-        <Link to="/dashboard/classes"><span className="qi" style={{ background: 'var(--amber)' }}><Icon name="layers" /></span>My classes</Link>
+        <Link to="/dashboard/classes"><span className="qi" style={{ background: 'var(--amber)' }}><Icon name="layers" /></span>Class</Link>
       </div>
       <div className="panel attn">
         <div className="panel-h"><h2>Needs your attention</h2>{items.length > 0 && <span className="count">{items.length} to do</span>}</div>
@@ -78,15 +78,7 @@ export default function Overview() {
         ) : <Empty><b>You’re all caught up.</b> Nothing is due right now.</Empty>}
       </div>
       <div className="d-cards">
-        <div className="card feature">
-          <span className="k">Next class</span>
-          {d.nextClass ? (
-            <>
-              <h3>{d.nextClass.topic || 'Class'}</h3>
-              <p className="sub">{fmtDay(d.nextClass.date)} · {c.scheduleText}<br />{c.location}</p>
-            </>
-          ) : <h3>No more classes. See you at Demo Day!</h3>}
-        </div>
+        <NextClass session={d.nextClass} schedule={c.scheduleText} demoDate={c.demoDate} />
         <div className="card">
           <span className="k">Course progress</span>
           <div className="ring-wrap">
@@ -125,6 +117,41 @@ export default function Overview() {
       {modal?.cancel && <CancelPayModal payment={modal.cancel} onClose={() => setModal(null)} onDone={reload} />}
       {modal?.quiz && <QuizModal quizId={modal.quiz} onClose={() => setModal(null)} onDone={reload} />}
       {modal?.submit && <SubmitModal a={modal.submit} onClose={() => setModal(null)} onDone={reload} />}
+    </div>
+  );
+}
+
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTH = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** That day's hours from a schedule like "Mon, Wed, Fri 10:00–15:00 · Sat 10:00–17:00". */
+const hoursOn = (schedule = '', date) => schedule.split('·').find((part) => part.includes(DOW[date.getDay()]))?.match(/\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2}/)?.[0] || '';
+
+function NextClass({ session, schedule, demoDate }) {
+  if (!session) {
+    return (
+      <div className="card next-class">
+        <span className="k">Next class</span>
+        <p className="nc-title">No more classes</p>
+        <p className="sub">See you at Demo Day, {fmtDay(demoDate)}.</p>
+      </div>
+    );
+  }
+  const date = new Date(session.date);
+  const days = Math.round((new Date(date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 864e5);
+  const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+  const hours = hoursOn(schedule, date);
+  return (
+    <div className="card next-class">
+      <div className="nc-top"><span className="k">Next class</span><span className="nc-when">{when}</span></div>
+      <div className="nc-body">
+        <div className="nc-date"><small>{DOW[date.getDay()]}</small><b>{date.getDate()}</b></div>
+        <div style={{ minWidth: 0 }}>
+          <p className="nc-title">{session.topic || 'Class'}</p>
+          <p className="sub">{DAY[date.getDay()]} {date.getDate()} {MONTH[date.getMonth()]}{hours ? ` · ${hours}` : ''}</p>
+        </div>
+      </div>
     </div>
   );
 }

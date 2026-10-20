@@ -244,7 +244,7 @@ button { font: inherit; color: inherit }
 @media (max-width: 560px) {
   .card { padding: 16px }
   .d-cards { grid-template-columns: 1fr 1fr; gap: 10px }
-  .d-cards .card.feature, .d-cards .span2 { grid-column: 1 / -1 }
+  .d-cards .card.feature, .d-cards .next-class, .d-cards .span2 { grid-column: 1 / -1 }
   .stats, .kpis { gap: 10px }
   .pg-h h1 { font-size: 1.65rem }
 }
@@ -478,3 +478,23 @@ img.avatar, img.prof-av { object-fit: cover; background: var(--mist) }
 .d-theme:hover { background: var(--mist); opacity: 1 }
 .theme-member .d-theme:hover, .theme-admin .d-theme:hover { background: rgba(255,255,255,.1) }
 .d-theme + .d-user { margin-top: 6px }
+
+/* Notifications bell */
+.d-brandrow { display: flex; align-items: center; justify-content: space-between; gap: 8px }
+.bell-btn { position: relative; border: 0; background: none; cursor: pointer; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: inherit; font-size: 19px; flex: none }
+.bell-btn:hover { background: var(--mist) }
+.theme-member .bell-btn:hover, .theme-admin .bell-btn:hover { background: rgba(255,255,255,.12) }
+.bell-n { position: absolute; top: 4px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--pink); color: #fff; font: 800 10px/17px var(--f-body); text-align: center; box-shadow: 0 0 0 2px var(--paper) }
+.notes { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; max-height: 65vh; overflow: auto }
+.notes li + li { border-top: 1px solid var(--rule) }
+.notes button { width: 100%; display: flex; gap: 12px; align-items: flex-start; text-align: left; border: 0; background: none; color: inherit; padding: 12px 6px; border-radius: 10px; cursor: pointer; font: inherit }
+.notes button:disabled { cursor: default }
+.notes button:not(:disabled):hover { background: var(--mist) }
+.notes .ib { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--violet-soft); color: var(--violet) }
+.notes .ib.announcement { background: var(--amber-soft); color: var(--wait) }
+.notes .nb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px }
+.notes .nb b { font-size: 14px }
+.notes .nb span { font-size: 13px; color: var(--ink-2); line-height: 1.45 }
+.notes .nb small { font-size: 12px; color: var(--ink-3) }
+.notes .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); flex: none; margin-top: 6px }
+.notes li.new b { color: var(--ink) }

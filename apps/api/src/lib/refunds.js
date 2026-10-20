@@ -5,6 +5,7 @@ import { prisma } from '../db.js';
 import { bad, notFound, makeRef, naira } from './util.js';
 import { createRefund, getRefund, cancelRefund as cancelMoneyMovesRefund, getCheckout, getPayment, moneyMovesEnabled } from './moneymoves.js';
 import { sendRefundEmail } from './email.js';
+import { notify, siteForPurpose } from './notify.js';
 
 const STATUS = { awaiting_funds: 'AWAITING_FUNDS', processing: 'PROCESSING', completed: 'COMPLETED', cancelled: 'CANCELLED' };
 
@@ -18,7 +19,10 @@ export const refundable = (payment, refunds) =>
 
 export const goesThroughMoneyMoves = (payment) => payment.method === 'ONLINE' && Boolean(payment.gatewayRef) && moneyMovesEnabled();
 
-const notify = (payment, refund) => sendRefundEmail(payment.user, payment, refund).catch((e) => console.error('Refund email failed', e));
+const tell = (payment, refund) => {
+  sendRefundEmail(payment.user, payment, refund).catch((e) => console.error('Refund email failed', e));
+  notify(payment.userId, { title: `Refund: ${naira(refund.amount)}`, body: `${payment.description} · ref ${payment.reference}`, site: siteForPurpose(payment.purpose), path: '/dashboard/payments' });
+};
 
 /** Starts a refund of `amount` naira (the whole remaining amount when left out). */
 export async function startRefund(paymentId, { amount, reason = '' }, staffId) {
@@ -32,7 +36,7 @@ export async function startRefund(paymentId, { amount, reason = '' }, staffId) {
 
   if (!goesThroughMoneyMoves(payment)) {
     const refund = await prisma.refund.create({ data: { paymentId, amount: value, reason, status: 'COMPLETED', completedAt: new Date(), createdById: staffId } });
-    notify(payment, refund);
+    tell(payment, refund);
     return refund;
   }
 
@@ -46,7 +50,7 @@ export async function startRefund(paymentId, { amount, reason = '' }, staffId) {
   const refund = await prisma.refund.create({
     data: { paymentId, amount: value, reason, viaMoneyMoves: true, status, gatewayRef: out.id, funding: fundingOf(out.funding), createdById: staffId, completedAt: status === 'COMPLETED' ? new Date() : null }
   });
-  if (status === 'COMPLETED') notify(payment, refund);
+  if (status === 'COMPLETED') tell(payment, refund);
   return refund;
 }
 
@@ -62,7 +66,7 @@ export async function syncRefund(refund, mmRefund) {
     data: { status, funding: fundingOf(out.funding) ?? refund.funding ?? undefined, ...(status === 'COMPLETED' ? { completedAt: new Date() } : {}) }
   });
   const updated = await prisma.refund.findUnique({ where: { id: refund.id }, include: { payment: { include: { user: true } } } });
-  if (count && status === 'COMPLETED') notify(updated.payment, updated);
+  if (count && status === 'COMPLETED') tell(updated.payment, updated);
   return updated;
 }
 

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
-import { ah, parse, bad, notFound, dateOnly, startOfDay, addDays } from '../lib/util.js';
+import { ah, parse, bad, notFound, dateOnly, startOfDay, addDays, naira } from '../lib/util.js';
 import { requireStaff, publicUser } from '../lib/auth.js';
 import { markPaid, markUnpaid, newPayment, paymentView, syncTarget } from '../lib/payments.js';
 import { syncSessions, seatsTaken, cohortView, skillView, getCurrentCohort } from '../lib/cohorts.js';
 import { getSettings } from '../lib/pricing.js';
+import { notify, notifyMany, siteForPurpose } from '../lib/notify.js';
 import { startRefund, syncRefund, cancelRefund, refundable, goesThroughMoneyMoves, refundView } from '../lib/refunds.js';
 import { BookingInput } from './public.js';
 import { createOrder, usablePass, freeDesk, passView, bookingView } from './space.js';
@@ -96,7 +97,9 @@ r.post('/payments/:id/confirm', ah(async (req, res) => {
 r.post('/payments/:id/reject', ah(async (req, res) => {
   const p = await prisma.payment.findUnique({ where: { id: req.params.id } });
   if (!p) throw notFound('Payment');
-  res.json({ payment: paymentView(await markUnpaid(p.id)) });
+  const updated = await markUnpaid(p.id);
+  notify(p.userId, { title: 'We couldn’t confirm your payment', body: `${naira(p.amount)} for ${p.description} hasn’t reached us. Pay again, or call us if you’ve already paid.`, site: siteForPurpose(p.purpose), path: '/dashboard/payments' });
+  res.json({ payment: paymentView(updated) });
 }));
 
 r.post('/payments/:id/cancel', ah(async (req, res) => {
@@ -346,7 +349,9 @@ r.post('/assignments', ah(async (req, res) => {
   const body = parse(AssignmentBody, req.body);
   const due = dateOnly(body.dueAt);
   due.setHours(23, 59, 0, 0);
-  res.status(201).json({ assignment: await prisma.assignment.create({ data: { ...body, dueAt: due } }) });
+  const assignment = await prisma.assignment.create({ data: { ...body, dueAt: due } });
+  notifyMany(await studentIds(assignment.cohortId), { title: `New project: ${assignment.title}`, body: `Due ${due.toDateString().slice(0, 10)}`, site: 'learn', path: '/dashboard/tasks' });
+  res.status(201).json({ assignment });
 }));
 
 r.get('/assignments/:id/submissions', ah(async (req, res) => {
@@ -368,8 +373,15 @@ r.patch('/submissions/:id', ah(async (req, res) => {
   if (body.score != null && body.score > s.assignment.maxScore) throw bad(`The highest score is ${s.assignment.maxScore}.`);
   const data = { ...body };
   if (body.changesRequested) data.score = null;
-  res.json({ submission: await prisma.submission.update({ where: { id: s.id }, data }) });
+  const updated = await prisma.submission.update({ where: { id: s.id }, data });
+  if (body.changesRequested) notify(s.userId, { title: `Changes requested: ${s.assignment.title}`, body: updated.feedback || 'Your instructor asked for changes. Resubmit from your dashboard.', site: 'learn', path: '/dashboard/tasks' });
+  else if (body.score != null) notify(s.userId, { title: `Graded: ${s.assignment.title}`, body: `${body.score} / ${s.assignment.maxScore}${updated.feedback ? ` · ${updated.feedback}` : ''}`, site: 'learn', path: '/dashboard/tasks' });
+  res.json({ submission: updated });
 }));
+
+/** Students who have paid something for the class. */
+const studentIds = async (cohortId) =>
+  (await prisma.enrollment.findMany({ where: { cohortId, payments: { some: { status: 'PAID' } } }, select: { userId: true } })).map((e) => e.userId);
 
 const QuizBody = z.object({
   cohortId: z.string(),
@@ -394,6 +406,7 @@ r.post('/quizzes', ah(async (req, res) => {
       questions: { create: body.questions.map((q, i) => ({ ...q, order: i })) }
     }
   });
+  notifyMany(await studentIds(quiz.cohortId), { title: `New quiz: ${quiz.title}`, body: `${body.questions.length} questions · closes ${closes.toDateString().slice(0, 10)}`, site: 'learn', path: '/dashboard/tasks' });
   res.status(201).json({ quiz });
 }));
 

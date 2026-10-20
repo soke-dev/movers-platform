@@ -11,6 +11,7 @@ import learnRoutes from './routes/learn.js';
 import spaceRoutes from './routes/space.js';
 import paymentRoutes, { moneyMovesWebhook } from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
+import notificationRoutes from './routes/notifications.js';
 import { startReminders } from './lib/reminders.js';
 
 const app = express();
@@ -36,6 +37,7 @@ app.use('/learn', learnRoutes);
 app.use('/space', spaceRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/admin', adminRoutes);
+app.use('/notifications', notificationRoutes);
 
 app.use((_req, res) => res.status(404).json({ error: 'Not found.' }));
 

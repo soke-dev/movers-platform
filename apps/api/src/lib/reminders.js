@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { env } from '../env.js';
 import { naira, addDays } from './util.js';
 import { sendReminderEmail } from './email.js';
+import { notify, placeOf } from './notify.js';
 
 const HOUR = 3600e3;
 const fmtDay = (d) => new Date(d).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -19,6 +20,8 @@ async function once(key, user, email) {
   }
   const sent = await sendReminderEmail(user, email).catch(() => false);
   if (!sent) await prisma.reminderSent.delete({ where: { key } }).catch(() => {});
+  // The same reminder shows in the bell.
+  else await notify(user.id, { title: email.title, body: email.intro, ...placeOf(email.link) });
   return sent;
 }
 

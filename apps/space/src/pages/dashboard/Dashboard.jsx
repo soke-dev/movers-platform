@@ -29,7 +29,7 @@ export default function Dashboard() {
     </div>
   );
   return (
-    <DashShell theme="theme-member" word="space" tone="#fff" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile">
+    <DashShell theme="theme-member" word="space" tone="#fff" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile" site="space">
       {loading && !data ? <Loading /> : error ? <ErrorBox error={error} retry={reload} /> : <Outlet context={{ data, reload }} />}
     </DashShell>
   );

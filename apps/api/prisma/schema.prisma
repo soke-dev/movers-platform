@@ -96,6 +96,8 @@ model User {
   username     String?  @unique
   /// When the profile photo last changed; the photo itself is in Avatar. Also versions the photo's address.
   avatarAt     DateTime?
+  /// When they last opened the notifications bell. Announcements after this count as unread.
+  notificationsSeenAt DateTime?
   /// Empty for people who only sign in with Google.
   passwordHash    String?
   /// Set when they enter the code from the confirmation email (or sign in with Google).
@@ -108,6 +110,7 @@ model User {
 
   tokens      AuthToken[]
   avatar      Avatar?
+  notifications Notification[]
   enrollments Enrollment[]
   payments    Payment[]    @relation("payer")
   submissions Submission[]
@@ -121,6 +124,24 @@ model User {
 enum TokenKind {
   VERIFY_EMAIL
   RESET_PASSWORD
+}
+
+/// Personal notifications in the bell: payments, refunds, grades, new quizzes, reminders.
+/// Announcements are shown in the bell too but live in Announcement.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String    @default("")
+  /// Where tapping it goes: the site ("learn" or "space") and the page on it.
+  site      String    @default("")
+  path      String    @default("")
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 /// Profile photos, kept apart from User so loading a user never loads the image.
