@@ -14,7 +14,6 @@ const LOCAL = {
   api: {
     DATABASE_URL: LOCAL_DATABASE_URL,
     JWT_SECRET: 'local-dev-secret',
-    DEV_FAKE_PAYMENTS: 'true',
     ADMIN_EMAIL: 'admin@movers.local',
     ADMIN_PASSWORD: 'movers-admin',
     ADMIN_NAME: 'Local Admin'

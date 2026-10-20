@@ -40,8 +40,10 @@ first time, updates the tables, adds the starting data, then runs everything:
 Ctrl+C stops it all. To start again from an empty database, stop it and delete `.pgdata/`.
 To run the parts one at a time: `npm run db:local`, then `npm run dev:api`, `dev:learn`, `dev:space`, `dev:admin`.
 
-With `DEV_FAKE_PAYMENTS=true` in `apps/api/.env` (the local default), "Pay online" succeeds straight away so you
-can test without Money Moves. Remove it once you add your Money Moves test key.
+"Pay online" goes through Money Moves locally too: put your Money Moves key in `MONEYMOVES_SECRET_KEY` in
+`apps/api/.env` (use the `sk_test_` key on your computer, so no real money moves). Money Moves can't send webhooks
+to your computer, so a local payment is confirmed when you come back from the checkout page, and a refund's
+status updates when you press "Check now".
 
 Without `RESEND_API_KEY`, emails aren't sent: the API prints each one (with its link) in its console, and
 `http://localhost:4000/auth/dev-outbox` lists them.
