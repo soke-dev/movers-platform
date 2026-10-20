@@ -1,6 +1,6 @@
 // Sets up the first class, the 12 skills, Movers Space prices and rooms,
 // and an admin login. Runs on every API start: it only fills what is missing.
-// `node prisma/seed.js --resend` emails the admin a fresh link even if one is still valid.
+// `node prisma/seed.js --resend` emails a new admin the welcome again.
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
@@ -94,13 +94,12 @@ async function main() {
   ];
   for (const room of rooms) await prisma.room.upsert({ where: { slug: room.slug }, update: {}, create: room });
 
-  // First admin. They get an email to choose their password, which also confirms the email.
-  // (If ADMIN_PASSWORD is set instead, they get a normal confirmation email.)
+  // First admin. Without ADMIN_PASSWORD they get one welcome email: they choose a password with
+  // "Forgot your password?" on the admin login, and the code they get confirms the email too.
   const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD || '';
   if (email) {
-    const { issueToken } = await import('../src/lib/tokens.js');
-    const { sendSetPasswordEmail, sendVerifyEmail } = await import('../src/lib/email.js');
+    const { sendAdminWelcomeEmail } = await import('../src/lib/email.js');
     const { env } = await import('../src/env.js');
     let admin = await prisma.user.findUnique({ where: { email } });
     if (!admin) {
@@ -109,7 +108,7 @@ async function main() {
           email,
           name: process.env.ADMIN_NAME || 'Movers Admin',
           passwordHash: password ? await bcrypt.hash(password, 10) : null,
-          // On your own computer, a password in .env is enough to log in; in production the email confirms it.
+          // On your own computer, a password in .env is enough to log in. In production, logging in sends a code first.
           emailVerifiedAt: password && process.env.NODE_ENV !== 'production' ? new Date() : null,
           role: 'ADMIN',
           referralCode: 'ADMIN-' + Date.now().toString(36).toUpperCase()
@@ -118,24 +117,18 @@ async function main() {
     } else if (admin.role !== 'ADMIN') {
       admin = await prisma.user.update({ where: { email }, data: { role: 'ADMIN' } });
     }
-    // Don't email again on every restart while an earlier link still works.
-    const waiting = await prisma.authToken.findFirst({ where: { userId: admin.id, usedAt: null, expiresAt: { gt: new Date() } } });
-    if (admin.emailVerifiedAt && admin.passwordHash) {
-      console.log(`Admin ${email} is ready. Log in at ${env.adminUrl}`);
-    } else if (waiting && !process.argv.includes('--resend')) {
-      console.log(`Admin ${email} has already been emailed a link. Run the seed with --resend to send a new one.`);
+    const key = `admin-welcome:${admin.id}`;
+    if (process.argv.includes('--resend')) await prisma.reminderSent.deleteMany({ where: { key } });
+    if (admin.passwordHash) {
+      console.log(`Admin ${email} is ready. Log in at ${env.adminUrl}/login`);
+    } else if (await prisma.reminderSent.findUnique({ where: { key } })) {
+      console.log(`Admin ${email} was emailed already. They choose a password with "Forgot your password?" at ${env.adminUrl}/login`);
+    } else if (await sendAdminWelcomeEmail(admin, `${env.adminUrl}/login`)) {
+      await prisma.reminderSent.create({ data: { key } });
+      console.log(`Emailed ${email}: choose a password with "Forgot your password?" at ${env.adminUrl}/login`);
     } else {
-      const kind = admin.passwordHash ? 'VERIFY_EMAIL' : 'RESET_PASSWORD';
-      const token = await issueToken(admin.id, kind, 24 * 3600e3);
-      const sent = kind === 'RESET_PASSWORD'
-        ? await sendSetPasswordEmail(admin, `${env.adminUrl}/reset-password?token=${token}`)
-        : await sendVerifyEmail(admin, `${env.adminUrl}/verify-email?token=${token}&next=%2F`);
-      if (sent) console.log(`Emailed ${email} a link to ${kind === 'RESET_PASSWORD' ? 'set their password' : 'confirm their email'}.`);
-      else {
-        // Try again on the next start.
-        await prisma.authToken.deleteMany({ where: { userId: admin.id, usedAt: null } });
-        console.log(`Could not email ${email}. Check RESEND_API_KEY and EMAIL_FROM.`);
-      }
+      // Tried again on the next start.
+      console.log(`Could not email ${email}. Check RESEND_API_KEY and EMAIL_FROM.`);
     }
   } else {
     console.log('Set ADMIN_EMAIL to create the first admin login.');

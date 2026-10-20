@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthPage, PaymentReturn, RequireAuth, VerifyEmail, ResetPassword } from '@movers/ui';
+import { AuthModal, PaymentReturn, RequireAuth } from '@movers/ui';
 import Landing from './pages/Landing.jsx';
 import Dashboard from './pages/dashboard/Dashboard.jsx';
 import Overview from './pages/dashboard/Overview.jsx';
@@ -13,10 +13,10 @@ export default function App() {
   return (
     <div className="space-ui">
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<AuthPage word="space" />} />
-      <Route path="/verify-email" element={<VerifyEmail word="space" />} />
-      <Route path="/reset-password" element={<ResetPassword word="space" />} />
+        {/* Logging in opens as a pop-up over the landing page. */}
+        <Route path="/" element={<Landing />}>
+          <Route path="login" element={<AuthModal />} />
+        </Route>
         <Route path="/payments/callback" element={<RequireAuth><PaymentReturn /></RequireAuth>} />
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>}>
           <Route index element={<Overview />} />

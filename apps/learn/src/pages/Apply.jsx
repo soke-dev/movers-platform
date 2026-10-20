@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { api, useApi, useAuth, Icon, Logo, LoginForm, RegisterForm, PayFlow, Loading, ErrorBox, naira, fmtDay, weekLabel } from '@movers/ui';
+import { api, useApi, useAuth, Icon, Modal, LoginForm, RegisterForm, PayFlow, Loading, ErrorBox, naira, fmtDay, weekLabel } from '@movers/ui';
 import { weekSpan } from './Landing.jsx';
 
+/** Sign-up for the class, as a pop-up over the landing page (/apply?kind=full|single&plan=two&skill=…). */
 export default function Apply() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -15,12 +16,14 @@ export default function Apply() {
   const [payment, setPayment] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const close = () => navigate('/', { preventScrollReset: true });
+  const shell = (children) => <Modal wide onClose={close} labelledBy="applyTitle"><div className="apply-modal">{children}</div></Modal>;
 
-  if (loading || user === undefined) return <Loading />;
-  if (error) return <div className="wrap" style={{ paddingBlock: 40 }}><ErrorBox error={error} /></div>;
+  if (loading || user === undefined) return shell(<Loading />);
+  if (error) return shell(<ErrorBox error={error} />);
   const c = data.cohort;
   const skills = data.skills;
-  if (!c) return <div className="wrap" style={{ paddingBlock: 40 }}><p className="errbox">Registration isn’t open right now. Check back soon.</p></div>;
+  if (!c) return shell(<p className="errbox" style={{ marginTop: 30 }}>Registration isn’t open right now. Check back soon.</p>);
 
   const step = !user ? 1 : payment ? 3 : 2;
   const two = kind === 'FULL' && plan === 'TWO' && c.allowTwoPayments;
@@ -49,15 +52,14 @@ export default function Apply() {
     ? [['Class', `${c.name}, ${c.code}`], ['Starts', `${fmtDay(c.startDate)} · Demo Day ${fmtDay(c.demoDate)}`], ['Plan', two ? 'Two payments' : 'Pay in full'], ['Class total', c.fullPrice, 'muted']]
     : [['Skills', skills.filter((s) => picked.has(s.id)).map((s) => s.name).join(', ')], ['Price', `${picked.size} × ${naira(c.skillPrice)}`, 'muted']];
 
-  return (
-    <div className="apply-page">
-      <Link className="brand" to="/" style={{ maxWidth: 720, margin: '0 auto', display: 'flex' }}><Logo /><span>movers <b>learn</b></span></Link>
-      <div className="apply-card">
+  return shell(
+    <>
+      <div>
         <div className="stepper" aria-label={`Step ${step} of 3`}>{[1, 2, 3].map((i) => <i key={i} className={i <= step ? 'on' : ''} />)}</div>
 
         {step === 1 && (
           <>
-            <h1>{authMode === 'register' ? 'Create your Movers account' : 'Log in to continue'}</h1>
+            <h1 id="applyTitle">{authMode === 'register' ? 'Create your Movers account' : 'Log in to continue'}</h1>
             {authMode === 'register'
               ? <RegisterForm cta="Continue" switchTo={() => setAuthMode('login')} />
               : <LoginForm switchTo={() => setAuthMode('register')} />}
@@ -66,7 +68,7 @@ export default function Apply() {
 
         {step === 2 && (
           <>
-            <h1>What do you want to learn?</h1>
+            <h1 id="applyTitle">What do you want to learn?</h1>
             <p className="small" style={{ marginTop: 6 }}>{c.code} · starts {fmtDay(c.startDate)} · {c.scheduleText} · in person</p>
             <div className="note" style={{ marginTop: 14 }}><Icon name="laptop" /><span><b>You need your own laptop.</b> {c.laptopNote}</span></div>
             <div className="opts" style={{ marginTop: 14 }}>
@@ -106,7 +108,7 @@ export default function Apply() {
             )}
             {err && <p className="err" style={{ marginTop: 12 }}>{err} {err.includes('already registered') && <Link className="linkbtn" to="/dashboard">Open my dashboard</Link>}</p>}
             <div className="sheet-foot">
-              <Link className="btn ghost" to="/">Back</Link>
+              <button className="btn ghost" onClick={close}>Back</button>
               <button className="btn pink" disabled={busy} onClick={enroll}>{busy ? 'Saving…' : 'Continue to payment'}</button>
             </div>
           </>
@@ -114,7 +116,7 @@ export default function Apply() {
 
         {step === 3 && (
           <>
-            <h1>{kind === 'FULL' ? 'Reserve your seat' : 'Book your skills'}</h1>
+            <h1 id="applyTitle">{kind === 'FULL' ? 'Reserve your seat' : 'Book your skills'}</h1>
             <PayFlow
               payment={payment}
               lines={lines}
@@ -128,6 +130,6 @@ export default function Apply() {
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }

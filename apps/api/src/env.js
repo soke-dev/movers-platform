@@ -19,7 +19,7 @@ export const env = {
   fakePayments: process.env.DEV_FAKE_PAYMENTS === 'true',
   whatsappNumber: process.env.WHATSAPP_NUMBER || '2348165468975',
 
-  // This API's own public address, used for Google/Apple sign-in callbacks.
+  // This API's own public address, used for the Google sign-in callback.
   publicApiUrl: (process.env.PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, ''),
   learnUrl: (process.env.LEARN_URL || 'http://localhost:5173').replace(/\/$/, ''),
   spaceUrl: (process.env.SPACE_URL || 'http://localhost:5174').replace(/\/$/, ''),
@@ -29,14 +29,7 @@ export const env = {
   resendKey: process.env.RESEND_API_KEY || '',
   emailFrom: process.env.EMAIL_FROM || 'Movers <no-reply@moverstech.xyz>',
 
-  google: { clientId: process.env.GOOGLE_CLIENT_ID || '', clientSecret: process.env.GOOGLE_CLIENT_SECRET || '' },
-  apple: {
-    clientId: process.env.APPLE_CLIENT_ID || '', // the Services ID, e.g. xyz.moverstech.signin
-    teamId: process.env.APPLE_TEAM_ID || '',
-    keyId: process.env.APPLE_KEY_ID || '',
-    // The .p8 key. In Railway, paste it with real line breaks or with \n between lines.
-    privateKey: (process.env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
-  }
+  google: { clientId: process.env.GOOGLE_CLIENT_ID || '', clientSecret: process.env.GOOGLE_CLIENT_SECRET || '' }
 };
 
 if (env.isProd && env.jwtSecret === 'dev-secret-change-me') {

@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthPage, PaymentReturn, RequireAuth, VerifyEmail, ResetPassword } from '@movers/ui';
+import { AuthModal, PaymentReturn, RequireAuth } from '@movers/ui';
 import Landing from './pages/Landing.jsx';
 import Apply from './pages/Apply.jsx';
 import Dashboard from './pages/dashboard/Dashboard.jsx';
@@ -13,11 +13,11 @@ import Certificate from './pages/dashboard/Certificate.jsx';
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/apply" element={<Apply />} />
-      <Route path="/login" element={<AuthPage word="learn" />} />
-      <Route path="/verify-email" element={<VerifyEmail word="learn" />} />
-      <Route path="/reset-password" element={<ResetPassword word="learn" />} />
+      {/* Signing up and logging in open as pop-ups over the landing page. */}
+      <Route path="/" element={<Landing />}>
+        <Route path="apply" element={<Apply />} />
+        <Route path="login" element={<AuthModal />} />
+      </Route>
       <Route path="/payments/callback" element={<RequireAuth><PaymentReturn /></RequireAuth>} />
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>}>
         <Route index element={<Overview />} />

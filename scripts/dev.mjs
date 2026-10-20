@@ -46,6 +46,7 @@ if (created.length) console.log(`Created .env for ${created.join(', ')} with loc
 
 console.log('Starting the local database…');
 const pg = await startLocalDb();
+await run('npm run build -w apps/api'); // prisma generate, in case the schema changed
 await run('npm run migrate -w apps/api');
 await run('npm run seed -w apps/api');
 

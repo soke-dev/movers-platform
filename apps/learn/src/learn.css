@@ -157,7 +157,4 @@
 .foot-cols a { display: block; padding: 4px 0; font: 600 15px var(--f-body); color: var(--ink); text-decoration: none }
 .foot-cols p { color: var(--ink-2); font-size: 14px; margin-top: 12px; max-width: 24em }
 .foot { padding-block: 22px; font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--rule) }
-.apply-page { min-height: 100vh; background: var(--mist); padding: 24px 16px 64px }
-.apply-card { max-width: 720px; margin: 24px auto 0; background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 28px }
-@media (max-width: 560px) { .apply-card { padding: 20px } }
-.apply-card h1 { font: 900 clamp(1.6rem, 3vw, 2.2rem)/1.1 var(--f-display); letter-spacing: -.03em }
+.apply-modal h1 { font: 900 clamp(1.5rem, 3vw, 2rem)/1.1 var(--f-display); letter-spacing: -.03em; padding-right: 40px }

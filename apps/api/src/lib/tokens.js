@@ -1,27 +1,38 @@
 import crypto from 'node:crypto';
 import { prisma } from '../db.js';
 import { env } from '../env.js';
+import { HttpError } from './util.js';
 
-const hash = (t) => crypto.createHash('sha256').update(t).digest('hex');
-const TTL = { VERIFY_EMAIL: 24 * 3600e3, RESET_PASSWORD: 3600e3 };
+// The user id is mixed in so two people can hold the same 6 digits.
+const hash = (userId, code) => crypto.createHash('sha256').update(`${userId}:${code}`).digest('hex');
+const CODE_TTL = 10 * 60e3;
+const MAX_TRIES = 5;
 
-/** Creates a one-time token and returns the raw value (only its hash is stored). */
-export async function issueToken(userId, kind, ttlMs = TTL[kind]) {
-  await prisma.authToken.deleteMany({ where: { userId, kind, usedAt: null } });
-  const raw = crypto.randomBytes(32).toString('hex');
-  await prisma.authToken.create({ data: { userId, kind, tokenHash: hash(raw), expiresAt: new Date(Date.now() + ttlMs) } });
-  return raw;
+/** Emails get a fresh 6-digit code; any earlier code of the same kind stops working. Returns the code. */
+export async function issueCode(userId, kind) {
+  await prisma.authToken.deleteMany({ where: { userId, kind } });
+  const code = String(crypto.randomInt(0, 1e6)).padStart(6, '0');
+  await prisma.authToken.create({ data: { userId, kind, tokenHash: hash(userId, code), expiresAt: new Date(Date.now() + CODE_TTL) } });
+  return code;
 }
 
-/** Marks a token used and returns its user, or null if it's wrong, used or expired. */
-export async function useToken(raw, kind) {
-  const t = await prisma.authToken.findUnique({ where: { tokenHash: hash(String(raw || '')) }, include: { user: true } });
-  if (!t || t.kind !== kind || t.usedAt || t.expiresAt < new Date()) return null;
+/** Checks a code for this email and uses it up. Returns the user, or throws a message to show. */
+export async function useCode(email, code, kind) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  const t = user && (await prisma.authToken.findFirst({ where: { userId: user.id, kind, usedAt: null }, orderBy: { createdAt: 'desc' } }));
+  if (!t || t.expiresAt < new Date()) throw new HttpError(400, 'That code has expired. Ask for a new one.');
+  if (t.attempts >= MAX_TRIES) throw new HttpError(400, 'Too many wrong tries. Ask for a new code.');
+  const a = Buffer.from(t.tokenHash, 'hex');
+  const b = Buffer.from(hash(user.id, String(code || '').replace(/\D/g, '')), 'hex');
+  if (!crypto.timingSafeEqual(a, b)) {
+    await prisma.authToken.update({ where: { id: t.id }, data: { attempts: { increment: 1 } } });
+    throw new HttpError(400, t.attempts + 1 >= MAX_TRIES ? 'Too many wrong tries. Ask for a new code.' : 'That code isn’t right. Check the email and try again.');
+  }
   await prisma.authToken.update({ where: { id: t.id }, data: { usedAt: new Date() } });
-  return t.user;
+  return user;
 }
 
-/** Only our own sites may appear in email links and sign-in redirects. */
+/** Only our own sites may appear in sign-in redirects. */
 export function safeAppUrl(url, fallback = env.learnUrl) {
   const allowed = [env.learnUrl, env.spaceUrl, env.adminUrl, ...env.origins];
   try {

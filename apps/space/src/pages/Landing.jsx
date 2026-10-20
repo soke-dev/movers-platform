@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { Icon, Logo, useApi, useAuth, Loading, ErrorBox, naira, ADDRESS, PHONE_DISPLAY, LEARN_URL } from '@movers/ui';
 import { BookingWidget } from '../components/BookingWidget.jsx';
 
@@ -32,7 +32,7 @@ function LayoutDots({ id }) {
   return <svg viewBox="0 0 160 78" aria-hidden="true">{stage}{dots}</svg>;
 }
 
-export default function Landing() {
+function LandingPage() {
   const { user } = useAuth();
   const { data, error, loading } = useApi('/public/space');
   const [open, setOpen] = useState(false);
@@ -146,6 +146,16 @@ export default function Landing() {
         </div>
       </section>
       <footer className="wrap s-foot"><span>© {new Date().getFullYear()} Movers Space, a Movers Tech company</span><a href={LEARN_URL}>Movers Learn: tech classes</a></footer>
+    </>
+  );
+}
+
+/** The page, plus whatever pop-up the address opens over it (log in, apply). */
+export default function Landing() {
+  return (
+    <>
+      <LandingPage />
+      <Outlet />
     </>
   );
 }

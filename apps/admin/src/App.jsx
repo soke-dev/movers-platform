@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { AuthPage, VerifyEmail, ResetPassword, RequireAuth, DashShell, useApi, useAuth } from '@movers/ui';
+import { AuthPage, RequireAuth, DashShell, useApi, useAuth } from '@movers/ui';
 import { CohortProvider } from './shared.jsx';
 import Overview from './pages/Overview.jsx';
 import Payments from './pages/Payments.jsx';
@@ -59,8 +59,6 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<AuthPage word="admin" home="/" staff />} />
-      <Route path="/verify-email" element={<VerifyEmail word="admin" home="/" />} />
-      <Route path="/reset-password" element={<ResetPassword word="admin" home="/" />} />
       <Route element={<RequireAuth staff><Shell /></RequireAuth>}>
         <Route index element={<Overview />} />
         <Route path="payments" element={<Payments />} />

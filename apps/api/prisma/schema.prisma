@@ -92,12 +92,11 @@ model User {
   name         String
   email        String   @unique
   phone        String?
-  /// Empty for people who only sign in with Google or Apple.
+  /// Empty for people who only sign in with Google.
   passwordHash    String?
-  /// Set when they click the link in the confirmation email (or sign in with Google/Apple).
+  /// Set when they enter the code from the confirmation email (or sign in with Google).
   emailVerifiedAt DateTime?
   googleId        String?   @unique
-  appleId         String?   @unique
   role            Role      @default(USER)
   referralCode    String    @unique
   referredById    String?
@@ -119,7 +118,7 @@ enum TokenKind {
   RESET_PASSWORD
 }
 
-/// One-time links sent by email. Only a hash of the token is stored.
+/// 6-digit codes sent by email, to confirm an email or reset a password. Only a hash is stored.
 model AuthToken {
   id        String    @id @default(cuid())
   userId    String
@@ -127,6 +126,8 @@ model AuthToken {
   tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
+  /// Wrong guesses. The code stops working after five.
+  attempts  Int       @default(0)
   createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -43,28 +43,32 @@ export async function sendEmail({ to, subject, html, text }) {
   return true;
 }
 
-export const sendVerifyEmail = (user, link) =>
+const codeBox = (code) =>
+  `<div style="margin-top:16px;font:800 34px/1 'Courier New',monospace;letter-spacing:8px;color:#120D24;background:#F6F4FB;border-radius:12px;padding:16px 0;text-align:center">${esc(code)}</div>`;
+
+export const sendVerifyEmail = (user, code) =>
   sendEmail({
     to: user.email,
-    subject: 'Confirm your email for Movers',
-    text: `Hi ${user.name.split(' ')[0]}, confirm your email to finish setting up your Movers account: ${link}\nThe link works for 24 hours.`,
-    html: layout({ title: 'Confirm your email', intro: `Hi ${esc(user.name.split(' ')[0])}, tap the button to confirm your email and finish setting up your Movers account.`, button: 'Confirm my email', link, outro: 'The link works for 24 hours. If you didn’t sign up, you can ignore this email.' })
+    subject: `${code} is your Movers code`,
+    text: `Hi ${user.name.split(' ')[0]}, your code to confirm your email is ${code}. It works for 10 minutes.`,
+    html: layout({ title: 'Confirm your email', intro: `Hi ${esc(user.name.split(' ')[0])}, enter this code to confirm your email and finish setting up your Movers account.${codeBox(code)}`, outro: 'The code works for 10 minutes. If you didn’t sign up, you can ignore this email.' })
   });
 
-export const sendResetEmail = (user, link) =>
+export const sendResetEmail = (user, code) =>
   sendEmail({
     to: user.email,
-    subject: 'Reset your Movers password',
-    text: `Hi ${user.name.split(' ')[0]}, set a new password here: ${link}\nThe link works for 1 hour.`,
-    html: layout({ title: 'Reset your password', intro: `Hi ${esc(user.name.split(' ')[0])}, tap the button to choose a new password.`, button: 'Choose a new password', link, outro: 'The link works for 1 hour. If you didn’t ask for this, you can ignore this email.' })
+    subject: `${code} is your Movers password code`,
+    text: `Hi ${user.name.split(' ')[0]}, your code to choose a new password is ${code}. It works for 10 minutes.`,
+    html: layout({ title: 'Reset your password', intro: `Hi ${esc(user.name.split(' ')[0])}, enter this code to choose a new password.${codeBox(code)}`, outro: 'The code works for 10 minutes. If you didn’t ask for this, you can ignore this email and your password stays the same.' })
   });
 
-export const sendSetPasswordEmail = (user, link) =>
+/** A new admin has no password yet: they set one with "Forgot your password?", which emails them a code. */
+export const sendAdminWelcomeEmail = (user, loginUrl) =>
   sendEmail({
     to: user.email,
-    subject: 'Set your Movers admin password',
-    text: `Hi ${user.name.split(' ')[0]}, an admin account was created for you. Choose your password here: ${link}\nThe link works for 24 hours.`,
-    html: layout({ title: 'Set your admin password', intro: `Hi ${esc(user.name.split(' ')[0])}, an admin account was created for you on Movers. Choose a password to confirm your email and log in.`, button: 'Choose my password', link, outro: 'The link works for 24 hours.' })
+    subject: 'Your Movers admin account is ready',
+    text: `Hi ${user.name.split(' ')[0]}, an admin account was created for you. Open ${loginUrl}, tap "Forgot your password?" and enter this email. We'll send you a code to choose your password.`,
+    html: layout({ title: 'Your admin account is ready', intro: `Hi ${esc(user.name.split(' ')[0])}, an admin account was created for you on Movers. To choose your password, open the admin login, tap <b>Forgot your password?</b> and enter this email. We’ll send you a code.`, button: 'Open admin', link: loginUrl })
   });
 
 export const sendReceiptEmail = (user, payment) =>

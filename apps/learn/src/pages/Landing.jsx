@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { Icon, Logo, QR, useApi, useAuth, naira, fmtDay, fmtShort, daysUntil, weekLabel, COLORS, GROUPS, ADDRESS, PHONE_DISPLAY, LEARN_URL, SPACE_URL, Loading } from '@movers/ui';
 
 const addDays = (d, n) => {
@@ -183,7 +183,7 @@ function Plan({ c, skills, onPick }) {
   );
 }
 
-export default function Landing() {
+function LandingPage() {
   const { data, error, loading } = useApi('/public/class');
   const [sel, setSel] = useState(null);
   if (loading) return <Loading />;
@@ -330,3 +330,12 @@ export default function Landing() {
   );
 }
 
+/** The page, plus whatever pop-up the address opens over it (log in, apply). */
+export default function Landing() {
+  return (
+    <>
+      <LandingPage />
+      <Outlet />
+    </>
+  );
+}

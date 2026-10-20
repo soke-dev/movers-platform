@@ -10,8 +10,12 @@ One codebase for both businesses, sharing one database and one login (a "Movers 
 | API | `apps/api` | api.moverstech.xyz | Node.js + Express + Prisma, talks to Postgres and Money Moves |
 | Shared design and parts | `packages/ui` | – | Styles, payment screen, login, dashboard layout |
 
-Accounts: sign up with email and password (the email must be confirmed before the first log in), or
-**Continue with Google / Apple**. Emails (confirmation, password reset, receipts) go out through **Resend**.
+Accounts: **Continue with Google**, or sign up with email and password. Signing up emails a 6-digit code;
+entering it confirms the email and logs them in. After that, logging in is just the password. Forgot the
+password? A 6-digit code by email lets them choose a new one. Codes work for 10 minutes and stop after 5 wrong
+tries. Emails (codes, receipts, reminders) go out through **Resend**.
+
+Signing up for the class, booking a space and logging in all open as pop-ups on the page you're on.
 
 Payments: online through **Money Moves** (bank transfer, Money Moves app, stablecoin), on **WhatsApp**
 (staff confirm the transfer in admin), **at the office** (cash/POS, staff mark it paid), or **pay later**.
@@ -82,7 +86,6 @@ Push this `movers-platform` folder to a GitHub repository (private is fine).
 | `RESEND_API_KEY` | from Resend → API keys (see step 7) |
 | `EMAIL_FROM` | `Movers <no-reply@moverstech.xyz>` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional, see step 8 |
-| `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | optional, see step 8 |
 | `ADMIN_EMAIL`, `ADMIN_NAME` | your first admin |
 | `NODE_ENV` | `production` |
 | `TZ` | `Africa/Lagos` |
@@ -113,8 +116,9 @@ All four must be on `moverstech.xyz` so one login works across them.
 Every time the API starts it updates the tables and fills in any missing starting data (the class, 12 skills,
 Space prices and rooms, and the admin from `ADMIN_EMAIL`). Nothing you've edited in admin is overwritten.
 
-The first start after `RESEND_API_KEY` is set emails `ADMIN_EMAIL` a link to choose a password (it works for 24 hours, and also confirms the email).
-After that, log in at admin.moverstech.xyz. If the link expires, restart the api service and a new one is sent.
+The first start after `RESEND_API_KEY` is set emails `ADMIN_EMAIL` to say the admin account is ready. To choose
+the password, open admin.moverstech.xyz, tap **Forgot your password?** and enter that email: a 6-digit code
+comes by email, and entering it sets the password and confirms the email.
 
 ### 6. Money Moves
 1. Money Moves dashboard → **Developers → API keys**: copy the secret key into `MONEYMOVES_SECRET_KEY`.
@@ -133,19 +137,14 @@ checked when they return), never just by the visit back.
    TXT for DKIM, optional DMARC) at your registrar, then press **Verify**.
 2. Resend → **API keys** → create one with sending access and put it in `RESEND_API_KEY`.
 
-### 8. Google and Apple sign-in (optional)
-The buttons only show once the keys are set.
+### 8. Google sign-in (optional)
+The button only shows once both keys are set.
 
-**Google:** Google Cloud console → APIs & Services → OAuth consent screen (External, app name "Movers"),
-then Credentials → Create OAuth client ID → Web application.
-Authorised redirect URI: `https://api.moverstech.xyz/auth/google/callback`.
-
-**Apple** (needs a paid Apple Developer account):
-1. Identifiers → App ID with "Sign in with Apple".
-2. Identifiers → **Services ID** (this is `APPLE_CLIENT_ID`, e.g. `xyz.moverstech.signin`). Turn on Sign in with
-   Apple, domain `api.moverstech.xyz`, return URL `https://api.moverstech.xyz/auth/apple/callback`.
-3. Keys → new key with Sign in with Apple → download the `.p8`. Its ID is `APPLE_KEY_ID`; your Team ID is top
-   right. Put the `.p8` text in `APPLE_PRIVATE_KEY` (Railway accepts it on several lines).
+Google Cloud console → APIs & Services → OAuth consent screen (External, app name "Movers", authorised domain
+`moverstech.xyz`, then **Publish app**), then Credentials → Create OAuth client ID → Web application.
+Authorised redirect URIs: `https://api.moverstech.xyz/auth/google/callback`, and for your computer
+`http://localhost:4000/auth/google/callback`. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET`.
 
 ---
 
