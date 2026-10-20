@@ -14,7 +14,10 @@ export default function Dashboard() {
     { to: '/dashboard/tasks', label: 'Quizzes & tasks', icon: 'quiz', badge: d?.todo.length ? `${d.todo.length} to do` : null },
     { to: '/dashboard/attendance', label: 'Attendance', icon: 'calendar' },
     { to: '/dashboard/payments', label: 'Payments', icon: 'wallet', badge: d?.owing.length ? `${d.owing.length} due` : null },
-    { to: '/dashboard/certificate', label: 'Certificate', icon: 'award' }
+    { to: '/dashboard/certificate', label: 'Certificate', icon: 'award' },
+    { group: 'Account' },
+    { to: '/dashboard/refer', label: 'Refer a friend', icon: 'gift' },
+    { to: '/dashboard/profile', label: 'Profile', icon: 'settings' }
   ];
   const tabs = [
     { to: '/dashboard', end: true, label: 'Home', icon: 'home' },
@@ -29,7 +32,7 @@ export default function Dashboard() {
     </div>
   );
   return (
-    <DashShell word="learn" nav={nav} tabs={tabs} cross={cross} home="/dashboard">
+    <DashShell word="learn" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile">
       {loading && !data ? <Loading /> : error ? <ErrorBox error={error} retry={reload} /> : <Outlet context={{ data, d, reload }} />}
     </DashShell>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from './api.js';
 import { API_URL } from './config.js';
-import { useAuth } from './auth.jsx';
+import { useAuth, storedRef } from './auth.jsx';
 
 const appUrl = () => window.location.origin;
 export const MIN_PASSWORD = 6;
@@ -14,9 +14,10 @@ export function SocialButtons({ next }) {
   }, []);
   if (!p.google) return null;
   const ret = encodeURIComponent(`${appUrl()}${next || '/dashboard'}`);
+  const ref = storedRef();
   return (
     <>
-      <a className="authf-google" href={`${API_URL}/auth/google?return=${ret}`}>
+      <a className="authf-google" href={`${API_URL}/auth/google?return=${ret}${ref ? `&ref=${encodeURIComponent(ref)}` : ''}`}>
         <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" /><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" /><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z" /><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" /></svg>
         Continue with Google
       </a>
@@ -35,7 +36,7 @@ function Field({ id, label, aside, children }) {
   );
 }
 
-function Password({ id, value, onChange, autoComplete = 'new-password', placeholder }) {
+export function Password({ id, value, onChange, autoComplete = 'new-password', placeholder }) {
   const [show, setShow] = useState(false);
   return (
     <div className="authf-pw">
@@ -58,7 +59,7 @@ export const phoneDigits = (s) => {
 };
 const spaced = (d) => [d.slice(0, 3), d.slice(3, 6), d.slice(6)].filter(Boolean).join(' ');
 
-function PhoneNG({ id, value, onChange }) {
+export function PhoneNG({ id, value, onChange }) {
   return (
     <div className="authf-phone">
       <span className="cc"><NigeriaFlag />+234</span>
@@ -191,6 +192,7 @@ export function LoginForm({ onDone, switchTo, next }) {
 
   return (
     <form className="authf" onSubmit={submit}>
+      <p className="authf-lead">One Movers account works on Movers Learn and Movers Space.</p>
       <SocialButtons next={next} />
       <Field id="li-email" label="Email"><input id="li-email" type="email" autoComplete="email" required value={f.email} onChange={(e) => set('email')(e.target.value)} /></Field>
       <Field id="li-pw" label="Password" aside={<button type="button" className="authf-link" onClick={() => go('forgot')}>Forgot password?</button>}>
@@ -204,8 +206,9 @@ export function LoginForm({ onDone, switchTo, next }) {
 }
 
 export function RegisterForm({ switchTo, cta = 'Create account', next, onDone }) {
-  const ref = new URLSearchParams(window.location.search).get('ref') || '';
-  const [f, setF] = useState({ name: '', email: '', phone: '', password: '', confirm: '', referral: ref });
+  // From a friend's link (?ref=, remembered while they browse), so they don't have to type it.
+  const ref = (new URLSearchParams(window.location.search).get('ref') || storedRef()).toUpperCase();
+  const [f, setF] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirm: '', referral: ref });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState('');
@@ -218,7 +221,7 @@ export function RegisterForm({ switchTo, cta = 'Create account', next, onDone })
     if (f.password !== f.confirm) return setErr('The two passwords don’t match.');
     setBusy(true);
     try {
-      const r = await api('/auth/register', { method: 'POST', body: { name: f.name, email: f.email, phone: `+234${f.phone}`, password: f.password, referral: f.referral || undefined } });
+      const r = await api('/auth/register', { method: 'POST', body: { firstName: f.firstName, lastName: f.lastName, email: f.email, phone: `+234${f.phone}`, password: f.password, referral: f.referral.trim() || undefined } });
       setSent(r.email);
     } catch (x) {
       setErr(x.message);
@@ -231,12 +234,17 @@ export function RegisterForm({ switchTo, cta = 'Create account', next, onDone })
     <form className="authf" onSubmit={submit}>
       <p className="authf-lead">One account for Movers Learn and Movers Space.</p>
       <SocialButtons next={next} />
-      <Field id="rg-name" label="Full name"><input id="rg-name" autoComplete="name" required value={f.name} onChange={(e) => set('name')(e.target.value)} /></Field>
+      <div className="authf-two">
+        <Field id="rg-first" label="First name"><input id="rg-first" autoComplete="given-name" required value={f.firstName} onChange={(e) => set('firstName')(e.target.value)} /></Field>
+        <Field id="rg-last" label="Last name"><input id="rg-last" autoComplete="family-name" required value={f.lastName} onChange={(e) => set('lastName')(e.target.value)} /></Field>
+      </div>
       <Field id="rg-email" label="Email"><input id="rg-email" type="email" autoComplete="email" required value={f.email} onChange={(e) => set('email')(e.target.value)} /></Field>
       <Field id="rg-phone" label="Phone number"><PhoneNG id="rg-phone" value={f.phone} onChange={set('phone')} /></Field>
       <Field id="rg-pw" label="Password"><Password id="rg-pw" value={f.password} onChange={set('password')} placeholder={`At least ${MIN_PASSWORD} characters`} /></Field>
       <Field id="rg-pw2" label="Confirm password"><Password id="rg-pw2" value={f.confirm} onChange={set('confirm')} /></Field>
-      {ref && <Field id="rg-ref" label="Referral code"><input id="rg-ref" value={f.referral} onChange={(e) => set('referral')(e.target.value)} /></Field>}
+      <Field id="rg-ref" label="Referral code" aside={<span className="authf-opt">{ref && f.referral === ref ? 'From your friend’s link' : 'Optional'}</span>}>
+        <input id="rg-ref" autoComplete="off" placeholder="e.g. ADA-7K2Q" value={f.referral} onChange={(e) => set('referral')(e.target.value.toUpperCase())} />
+      </Field>
       <Err>{err}</Err>
       <button className="btn pink full authf-go" disabled={busy}>{busy ? 'Creating your account…' : cta}</button>
       <p className="authf-fine">We’ll email you a 6-digit code to confirm your email.</p>

@@ -3,6 +3,24 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { api } from './api.js';
 
 const AuthCtx = createContext(null);
+const REF_KEY = 'mv-ref';
+
+/** A referral link (?ref=CODE) is remembered, so sign-up fills the code in even after they browse around. */
+function rememberRef() {
+  const ref = new URLSearchParams(window.location.search).get('ref');
+  try {
+    if (ref) localStorage.setItem(REF_KEY, ref.trim().toUpperCase());
+  } catch { /* private mode */ }
+}
+rememberRef();
+
+export function storedRef() {
+  try {
+    return localStorage.getItem(REF_KEY) || '';
+  } catch {
+    return '';
+  }
+}
 
 /** Shares the signed-in Movers account. The session cookie works across learn., space. and admin. */
 export function AuthProvider({ children }) {

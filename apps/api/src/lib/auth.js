@@ -42,4 +42,15 @@ export const requireStaff = (req, res, next) =>
   req.user && req.user.role !== 'USER' ? next() : res.status(403).json({ error: 'This page is for Movers staff.' });
 
 export const publicUser = (u) =>
-  u && { id: u.id, name: u.name, email: u.email, phone: u.phone, role: u.role, referralCode: u.referralCode };
+  u && {
+    id: u.id,
+    name: u.name,
+    username: u.username,
+    email: u.email,
+    phone: u.phone,
+    role: u.role,
+    referralCode: u.referralCode,
+    hasPassword: Boolean(u.passwordHash),
+    google: Boolean(u.googleId),
+    createdAt: u.createdAt
+  };

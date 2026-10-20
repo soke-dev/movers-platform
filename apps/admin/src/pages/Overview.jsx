@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useApi, useAuth, Icon, Loading, ErrorBox, Empty, naira, fmtDay, fmtTime, LEARN_URL, SPACE_URL } from '@movers/ui';
+import { useApi, useAuth, Icon, Loading, ErrorBox, Empty, naira, fmtDay, fmtTime, LEARN_URL, SPACE_URL, displayName } from '@movers/ui';
 import { PageHead } from '../shared.jsx';
 
 export default function Overview() {
@@ -17,7 +17,7 @@ export default function Overview() {
   ];
   return (
     <div className="pg">
-      <PageHead eyebrow={fmtDay(new Date())} title={`Hello, ${user.name.split(' ')[0]}`}>
+      <PageHead eyebrow={fmtDay(new Date())} title={`Hello, ${displayName(user)}`}>
         <a className="btn soft sm" href={LEARN_URL} target="_blank" rel="noreferrer">Learn site</a>
         <a className="btn soft sm" href={SPACE_URL} target="_blank" rel="noreferrer">Space site</a>
       </PageHead>

@@ -12,7 +12,9 @@ export default function Dashboard() {
     { to: '/dashboard/visits', label: 'Visits', icon: 'calendar' },
     { to: '/dashboard/bookings', label: 'Bookings', icon: 'clock' },
     { to: '/dashboard/payments', label: 'Payments', icon: 'wallet', badge: due ? `${due} due` : null },
-    { to: '/dashboard/refer', label: 'Refer a friend', icon: 'gift' }
+    { group: 'Account' },
+    { to: '/dashboard/refer', label: 'Refer a friend', icon: 'gift' },
+    { to: '/dashboard/profile', label: 'Profile', icon: 'settings' }
   ];
   const tabs = [
     { to: '/dashboard', end: true, label: 'Home', icon: 'home' },
@@ -27,7 +29,7 @@ export default function Dashboard() {
     </div>
   );
   return (
-    <DashShell theme="theme-member" word="space" tone="#fff" nav={nav} tabs={tabs} cross={cross} home="/dashboard">
+    <DashShell theme="theme-member" word="space" tone="#fff" nav={nav} tabs={tabs} cross={cross} home="/dashboard" profile="/dashboard/profile">
       {loading && !data ? <Loading /> : error ? <ErrorBox error={error} retry={reload} /> : <Outlet context={{ data, reload }} />}
     </DashShell>
   );

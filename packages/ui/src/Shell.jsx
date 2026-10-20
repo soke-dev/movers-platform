@@ -9,8 +9,9 @@ import { initials } from './format.js';
 /**
  * Dashboard layout: sidebar on desktop, app bar and bottom tabs on phones.
  * nav: [{ to, label, icon, badge, group }]; tabs: [{ to, label, icon, dot }] (max 4, a "More" tab is added).
+ * profile: the profile page's path, which the account box links to.
  */
-export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross, home = '/', children }) {
+export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross, home = '/', profile, children }) {
   const { user, logout } = useAuth();
   const [more, setMore] = useState(false);
   const [account, setAccount] = useState(false);
@@ -36,7 +37,9 @@ export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross
         {cross}
         <div className="d-user">
           <span className="avatar">{initials(user?.name)}</span>
-          <div style={{ minWidth: 0 }}><b>{user?.name}</b><span>{user?.email}</span></div>
+          {profile
+            ? <Link to={profile} style={{ minWidth: 0, textDecoration: 'none', color: 'inherit' }} title="Your profile"><b>{user?.name}</b><span>{user?.username ? `@${user.username}` : user?.email}</span></Link>
+            : <div style={{ minWidth: 0 }}><b>{user?.name}</b><span>{user?.email}</span></div>}
           <button className="btn ghost sm" onClick={out} aria-label="Log out" title="Log out"><Icon name="logout" /></button>
         </div>
       </aside>
@@ -64,8 +67,11 @@ export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross
       )}
       {account && (
         <Modal title={user?.name} onClose={() => setAccount(false)}>
-          <p className="small" style={{ marginTop: 6 }}>{user?.email} · {user?.phone}</p>
-          <div className="sheet-foot"><button className="btn ink" onClick={out}><Icon name="logout" />Log out</button></div>
+          <p className="small" style={{ marginTop: 6 }}>{user?.username ? `@${user.username} · ` : ''}{user?.email}</p>
+          <div className="sheet-foot">
+            {profile && <Link className="btn soft" to={profile} onClick={() => setAccount(false)}><Icon name="settings" />Profile</Link>}
+            <button className="btn ink" onClick={out}><Icon name="logout" />Log out</button>
+          </div>
         </Modal>
       )}
     </div>

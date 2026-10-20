@@ -52,6 +52,9 @@ export function isoDate(x = new Date()) {
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 }
 
+/** What to call someone: their username if they chose one, otherwise their first name. */
+export const displayName = (u) => u?.username || (u?.name || '').split(' ')[0] || '';
+
 export const initials = (name = '') => name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 
 export const phoneToWa = (p) => {

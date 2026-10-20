@@ -33,26 +33,41 @@ const NigeriaPhone = z.string().trim().transform((p, ctx) => {
   return `+234${d}`;
 });
 const Password = z.string().min(6, 'Use at least 6 characters');
+const FirstName = z.string().trim().min(1, 'Enter your first name').max(40);
+const LastName = z.string().trim().min(1, 'Enter your last name').max(40);
+// Names are stored as "First Last", so the first word is always the first name.
+const fullName = (first, last) => `${first.replace(/\s+/g, '-')} ${last}`.trim();
 
 const RegisterBody = z.object({
-  name: z.string().trim().min(2, 'Enter your full name'),
+  firstName: FirstName,
+  lastName: LastName,
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
   phone: NigeriaPhone,
   password: Password,
   referral: z.string().trim().optional()
 });
 
+/** The person whose referral code this is. A code that was typed must exist; an empty one is fine. */
+async function referrerFor(code) {
+  const c = String(code || '').trim().toUpperCase();
+  if (!c) return null;
+  const referrer = await prisma.user.findUnique({ where: { referralCode: c } });
+  if (!referrer) throw new HttpError(400, 'We couldn’t find that referral code. Check it, or leave it empty.');
+  return referrer;
+}
+
 /** Creates the account and emails a 6-digit code. Entering it confirms the email and logs them in. */
 r.post('/register', limiter, ah(async (req, res) => {
   const body = parse(RegisterBody, req.body);
   const existing = await prisma.user.findUnique({ where: { email: body.email } });
   if (existing?.emailVerifiedAt) throw new HttpError(409, 'An account with this email already exists. Log in instead.');
-  const referrer = body.referral ? await prisma.user.findUnique({ where: { referralCode: body.referral.toUpperCase() } }) : null;
-  const data = { name: body.name, phone: body.phone, passwordHash: await bcrypt.hash(body.password, 10) };
+  const referrer = await referrerFor(body.referral);
+  const name = fullName(body.firstName, body.lastName);
+  const data = { name, phone: body.phone, passwordHash: await bcrypt.hash(body.password, 10) };
   // An unconfirmed account with this email can be signed up again (e.g. they lost the email).
   const user = existing
-    ? await prisma.user.update({ where: { id: existing.id }, data })
-    : await prisma.user.create({ data: { ...data, email: body.email, referralCode: referralFor(body.name), referredById: referrer?.id } });
+    ? await prisma.user.update({ where: { id: existing.id }, data: { ...data, referredById: existing.referredById || referrer?.id } })
+    : await prisma.user.create({ data: { ...data, email: body.email, referralCode: referralFor(name), referredById: referrer?.id } });
   await sendVerification(user);
   res.status(201).json({ needsVerification: true, email: user.email });
 }));
@@ -124,11 +139,65 @@ r.post('/logout', (_req, res) => {
 
 r.get('/me', (req, res) => res.json({ user: publicUser(req.user) || null }));
 
-const ProfileBody = z.object({ name: z.string().trim().min(2).optional(), phone: NigeriaPhone.optional() });
+const Username = z.string().trim().toLowerCase().transform((u, ctx) => {
+  const v = u.replace(/^@/, '');
+  if (!v) return null; // empty clears it
+  if (!/^[a-z0-9_]{3,20}$/.test(v)) {
+    ctx.addIssue({ code: 'custom', message: 'Use 3–20 letters, numbers or _' });
+    return z.NEVER;
+  }
+  return v;
+});
+const ProfileBody = z.object({ firstName: FirstName.optional(), lastName: LastName.optional(), phone: NigeriaPhone.optional(), username: Username.optional() });
+
+/** Profile page: first and last name, phone and username. Email can't change here. */
 r.patch('/me', requireAuth, ah(async (req, res) => {
-  const data = parse(ProfileBody, req.body);
-  const user = await prisma.user.update({ where: { id: req.user.id }, data });
+  const body = parse(ProfileBody, req.body);
+  const [first, ...rest] = req.user.name.split(' ');
+  const data = {};
+  if (body.firstName !== undefined || body.lastName !== undefined) data.name = fullName(body.firstName ?? first, body.lastName ?? rest.join(' '));
+  if (body.phone !== undefined) data.phone = body.phone;
+  if (body.username !== undefined) data.username = body.username;
+  try {
+    res.json({ user: publicUser(await prisma.user.update({ where: { id: req.user.id }, data })) });
+  } catch (e) {
+    if (e.code === 'P2002') throw new HttpError(409, 'That username is taken. Try another.');
+    throw e;
+  }
+}));
+
+const PasswordBody = z.object({ current: z.string().optional(), password: Password });
+
+/** Change password. Accounts made with Google have none yet, so they can add one without a current password. */
+r.post('/password', requireAuth, limiter, ah(async (req, res) => {
+  const body = parse(PasswordBody, req.body);
+  if (req.user.passwordHash && !(await bcrypt.compare(body.current || '', req.user.passwordHash))) {
+    throw new HttpError(400, 'Your current password isn’t right.');
+  }
+  const user = await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash: await bcrypt.hash(body.password, 10) } });
   res.json({ user: publicUser(user) });
+}));
+
+/** Refer a friend: their code, and the people who signed up with it and what they've done since. */
+r.get('/referrals', requireAuth, ah(async (req, res) => {
+  const people = await prisma.user.findMany({
+    where: { referredById: req.user.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      name: true,
+      createdAt: true,
+      _count: { select: { visits: true } },
+      enrollments: { where: { payments: { some: { status: 'PAID' } } }, select: { id: true } }
+    }
+  });
+  res.json({
+    code: req.user.referralCode,
+    // First name and last initial only.
+    referrals: people.map((p) => {
+      const [first, ...rest] = p.name.split(' ');
+      return { name: `${first}${rest.length ? ` ${rest.join(' ')[0]}.` : ''}`, joined: p.createdAt, joinedClass: p.enrollments.length > 0, visitedSpace: p._count.visits > 0 };
+    })
+  });
 }));
 
 /* ---------- Google ---------- */
@@ -146,7 +215,7 @@ function startUrl(req) {
 }
 
 /** Finds or creates the account for a Google sign-in, linking by email when it already exists. */
-async function upsertGoogleUser(p) {
+async function upsertGoogleUser(p, ref) {
   let user = await prisma.user.findUnique({ where: { googleId: p.id } });
   if (!user) {
     const byEmail = await prisma.user.findUnique({ where: { email: p.email } });
@@ -154,8 +223,10 @@ async function upsertGoogleUser(p) {
       if (!p.emailVerified) throw new HttpError(400, 'Your email isn’t confirmed with Google. Log in with your password instead.');
       user = await prisma.user.update({ where: { id: byEmail.id }, data: { googleId: p.id, emailVerifiedAt: byEmail.emailVerifiedAt || new Date() } });
     } else {
+      // A referral link that no longer works shouldn't stop them signing up with Google.
+      const referrer = await referrerFor(ref).catch(() => null);
       user = await prisma.user.create({
-        data: { googleId: p.id, email: p.email, name: p.name, referralCode: referralFor(p.name), emailVerifiedAt: p.emailVerified ? new Date() : null }
+        data: { googleId: p.id, email: p.email, name: p.name, referralCode: referralFor(p.name), referredById: referrer?.id, emailVerifiedAt: p.emailVerified ? new Date() : null }
       });
     }
   }
@@ -176,15 +247,16 @@ const failTo = (res, returnTo, e) => {
 
 r.get('/google', (req, res) => {
   if (!googleEnabled()) return res.status(404).json({ error: 'Google sign-in isn’t set up.' });
-  res.redirect(googleAuthUrl(makeState(startUrl(req))));
+  res.redirect(googleAuthUrl(makeState(startUrl(req), String(req.query.ref || '').slice(0, 40))));
 });
 
 r.get('/google/callback', async (req, res) => {
   let returnTo = `${env.learnUrl}/dashboard`;
   try {
-    returnTo = readState(req.query.state);
+    const state = readState(req.query.state);
+    returnTo = state.returnTo;
     if (req.query.error) throw new HttpError(400, 'Google sign-in was cancelled.');
-    finish(res, await upsertGoogleUser(await googleProfile(String(req.query.code || ''))), returnTo);
+    finish(res, await upsertGoogleUser(await googleProfile(String(req.query.code || '')), state.ref), returnTo);
   } catch (e) {
     if (!e.status || e.status >= 500) console.error(e);
     failTo(res, returnTo, e);

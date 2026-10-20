@@ -92,6 +92,8 @@ model User {
   name         String
   email        String   @unique
   phone        String?
+  /// Optional, chosen on the profile page. Stored in lowercase; greetings use it instead of the first name.
+  username     String?  @unique
   /// Empty for people who only sign in with Google.
   passwordHash    String?
   /// Set when they enter the code from the confirmation email (or sign in with Google).

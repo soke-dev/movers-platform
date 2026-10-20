@@ -8,11 +8,12 @@ export const googleEnabled = () => Boolean(env.google.clientId && env.google.cli
 
 const callback = (provider) => `${env.publicApiUrl}/auth/${provider}/callback`;
 
-/** Signed state carries where to send the person afterwards, and stops forged callbacks. */
-export const makeState = (returnTo) => jwt.sign({ r: returnTo, n: crypto.randomBytes(8).toString('hex') }, env.jwtSecret, { expiresIn: '15m' });
+/** Signed state carries where to send the person afterwards (and a referral code, if any), and stops forged callbacks. */
+export const makeState = (returnTo, ref = '') => jwt.sign({ r: returnTo, ref, n: crypto.randomBytes(8).toString('hex') }, env.jwtSecret, { expiresIn: '15m' });
 export function readState(state) {
   try {
-    return jwt.verify(String(state || ''), env.jwtSecret).r;
+    const s = jwt.verify(String(state || ''), env.jwtSecret);
+    return { returnTo: s.r, ref: s.ref || '' };
   } catch {
     throw new HttpError(400, 'That sign-in link expired. Try again.');
   }

@@ -424,3 +424,24 @@ td.amt, td.tm { font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
 .authf-switch { text-align: center; font-size: 13px; color: var(--ink-2) }
 .authf-fine { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: -6px }
 .authf-err { font-size: 13px; font-weight: 600; color: var(--due); background: var(--pink-soft); border-radius: 10px; padding: 10px 12px }
+.authf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+@media (max-width: 420px) { .authf-two { grid-template-columns: 1fr } }
+.authf-opt { font-size: 12px; color: var(--ink-3) }
+label.authf-label { font: 600 13px var(--f-body); color: var(--ink) }
+.authf input:disabled { background: var(--mist); color: var(--ink-2) }
+
+/* Profile */
+.prof-card { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: center }
+.prof-av { width: 64px; height: 64px; border-radius: 18px; background: var(--ink); color: #fff; display: grid; place-items: center; font: 800 22px var(--f-display) }
+.prof-id h2 { font: 800 22px/1.2 var(--f-display); letter-spacing: -.02em }
+.prof-id p { font-size: 14px; color: var(--ink-2); margin-top: 2px }
+.prof-facts { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 24px; margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--rule) }
+.prof-facts dt { font-size: 12px; color: var(--ink-3) }
+.prof-facts dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere }
+.prof-grid { margin-top: 16px; align-items: start }
+
+/* Refer a friend */
+.ref-box { display: flex; align-items: center; gap: 10px; justify-content: space-between; border: 1.5px solid var(--line); border-radius: 11px; padding: 8px 8px 8px 14px; margin-top: 8px }
+.ref-box span, .ref-box b { overflow-wrap: anywhere; font-size: 14px; min-width: 0 }
+.ref-box b { font-size: 17px; letter-spacing: .04em }
+.ref-steps { margin: 18px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 14px; display: flex; flex-direction: column; gap: 6px }

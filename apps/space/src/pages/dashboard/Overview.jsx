@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, Icon, QR, Empty, useAuth, useToast, fmtDay, fmtDate, fmtTime, hm } from '@movers/ui';
+import { api, Icon, QR, Empty, useAuth, useToast, fmtDay, fmtDate, fmtTime, hm, displayName } from '@movers/ui';
 import { useSpace } from './Dashboard.jsx';
 import { BookingRow } from './Bookings.jsx';
 
@@ -36,7 +36,7 @@ export default function Overview() {
 
   return (
     <div className="pg">
-      <div className="pg-h"><div><p className="eyebrow">{fmtDay(new Date())} · Movers Space</p><h1>{hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'}, {user.name.split(' ')[0]}</h1></div></div>
+      <div className="pg-h"><div><p className="eyebrow">{fmtDay(new Date())} · Movers Space</p><h1>{hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'}, {displayName(user)}</h1></div></div>
       <div className="m-cards">
         <div className="card ck">
           <span className="k">Check-in</span>

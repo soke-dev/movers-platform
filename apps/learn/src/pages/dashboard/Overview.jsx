@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Icon, Empty, PayChip, useAuth, naira, fmtDay, fmtTime, dueText, dayNum, monShort, SPACE_URL } from '@movers/ui';
+import { Icon, Empty, PayChip, useAuth, displayName, naira, fmtDay, fmtTime, dueText, dayNum, monShort, SPACE_URL } from '@movers/ui';
 import { useLearn } from './Dashboard.jsx';
 import { PayModal, QuizModal, SubmitModal, CancelPayModal } from './modals.jsx';
 
@@ -8,7 +8,7 @@ export default function Overview() {
   const { data, d, reload } = useLearn();
   const { user } = useAuth();
   const [modal, setModal] = useState(null);
-  const first = user.name.split(' ')[0];
+  const first = displayName(user);
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 

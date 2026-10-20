@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthModal, PaymentReturn, RequireAuth } from '@movers/ui';
+import { AuthModal, PaymentReturn, RequireAuth, ProfilePage, ReferPage } from '@movers/ui';
 import Landing from './pages/Landing.jsx';
 import Apply from './pages/Apply.jsx';
 import Dashboard from './pages/dashboard/Dashboard.jsx';
@@ -28,6 +28,8 @@ export default function App() {
         <Route path="attendance" element={<Attendance />} />
         <Route path="payments" element={<Payments />} />
         <Route path="certificate" element={<Certificate />} />
+        <Route path="refer" element={<ReferPage share={(code, link) => `Learn tech in person at Movers Learn, GRA, Benin City. Sign up with my link: ${link} (or use my code ${code})`} />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
