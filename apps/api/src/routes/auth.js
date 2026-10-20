@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { prisma } from '../db.js';
 import { env } from '../env.js';
-import { ah, parse, HttpError, makeRef } from '../lib/util.js';
+import { ah, parse, HttpError, newReferralCode } from '../lib/util.js';
 import { setSession, clearSession, publicUser, requireAuth } from '../lib/auth.js';
 import { issueCode, useCode, safeAppUrl, safeNext } from '../lib/tokens.js';
 import { sendVerifyEmail, sendResetEmail, devOutbox } from '../lib/email.js';
@@ -12,8 +12,6 @@ import { googleEnabled, makeState, readState, googleAuthUrl, googleProfile } fro
 
 const r = Router();
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many attempts. Wait a few minutes and try again.' } });
-
-const referralFor = (name) => makeRef(name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 8) || 'MOVER', 4);
 
 /** Tells the person when the email didn't go, instead of leaving them waiting for a code. */
 const mustSend = (sent) => {
@@ -67,7 +65,7 @@ r.post('/register', limiter, ah(async (req, res) => {
   // An unconfirmed account with this email can be signed up again (e.g. they lost the email).
   const user = existing
     ? await prisma.user.update({ where: { id: existing.id }, data: { ...data, referredById: existing.referredById || referrer?.id } })
-    : await prisma.user.create({ data: { ...data, email: body.email, referralCode: referralFor(name), referredById: referrer?.id } });
+    : await prisma.user.create({ data: { ...data, email: body.email, referralCode: newReferralCode(), referredById: referrer?.id } });
   await sendVerification(user);
   res.status(201).json({ needsVerification: true, email: user.email });
 }));
@@ -226,7 +224,7 @@ async function upsertGoogleUser(p, ref) {
       // A referral link that no longer works shouldn't stop them signing up with Google.
       const referrer = await referrerFor(ref).catch(() => null);
       user = await prisma.user.create({
-        data: { googleId: p.id, email: p.email, name: p.name, referralCode: referralFor(p.name), referredById: referrer?.id, emailVerifiedAt: p.emailVerified ? new Date() : null }
+        data: { googleId: p.id, email: p.email, name: p.name, referralCode: newReferralCode(), referredById: referrer?.id, emailVerifiedAt: p.emailVerified ? new Date() : null }
       });
     }
   }

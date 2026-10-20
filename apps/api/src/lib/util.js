@@ -33,6 +33,9 @@ export function makeRef(prefix, len = 6) {
   return `${prefix}-${s}`;
 }
 
+/** A referral code like MV-7K2Q9P. Random, never made from the person's name. */
+export const newReferralCode = () => makeRef('MV', 6);
+
 export const waLink = (number, text) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 
 /** "0803 000 0000" -> "2348030000000" for wa.me links. */

@@ -3,6 +3,7 @@
 // `node prisma/seed.js --resend` emails a new admin the welcome again.
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
+import { newReferralCode } from '../src/lib/util.js';
 
 process.env.TZ = process.env.TZ || 'Africa/Lagos';
 const prisma = new PrismaClient();
@@ -111,7 +112,7 @@ async function main() {
           // On your own computer, a password in .env is enough to log in. In production, logging in sends a code first.
           emailVerifiedAt: password && process.env.NODE_ENV !== 'production' ? new Date() : null,
           role: 'ADMIN',
-          referralCode: 'ADMIN-' + Date.now().toString(36).toUpperCase()
+          referralCode: newReferralCode()
         }
       });
     } else if (admin.role !== 'ADMIN') {

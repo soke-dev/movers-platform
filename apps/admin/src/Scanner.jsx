@@ -70,7 +70,7 @@ export function CodeInput({ onCode, autoFocus }) {
   const [v, setV] = useState('');
   return (
     <form className="row" style={{ marginTop: 12 }} onSubmit={(e) => { e.preventDefault(); if (v.trim()) onCode(v.trim()); setV(''); }}>
-      <label className="search" style={{ flex: 1, maxWidth: 'none' }}><input value={v} onChange={(e) => setV(e.target.value)} placeholder="Or type their code, e.g. ADA-7K2Q" aria-label="Check-in code" autoFocus={autoFocus} autoComplete="off" /></label>
+      <label className="search" style={{ flex: 1, maxWidth: 'none' }}><input value={v} onChange={(e) => setV(e.target.value)} placeholder="Or type their code, e.g. MV-7K2Q9P" aria-label="Check-in code" autoFocus={autoFocus} autoComplete="off" /></label>
       <button className="btn ink">Go</button>
     </form>
   );

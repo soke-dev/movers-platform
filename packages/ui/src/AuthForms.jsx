@@ -243,7 +243,7 @@ export function RegisterForm({ switchTo, cta = 'Create account', next, onDone })
       <Field id="rg-pw" label="Password"><Password id="rg-pw" value={f.password} onChange={set('password')} placeholder={`At least ${MIN_PASSWORD} characters`} /></Field>
       <Field id="rg-pw2" label="Confirm password"><Password id="rg-pw2" value={f.confirm} onChange={set('confirm')} /></Field>
       <Field id="rg-ref" label="Referral code" aside={<span className="authf-opt">{ref && f.referral === ref ? 'From your friend’s link' : 'Optional'}</span>}>
-        <input id="rg-ref" autoComplete="off" placeholder="e.g. ADA-7K2Q" value={f.referral} onChange={(e) => set('referral')(e.target.value.toUpperCase())} />
+        <input id="rg-ref" autoComplete="off" placeholder="e.g. MV-7K2Q9P" value={f.referral} onChange={(e) => set('referral')(e.target.value.toUpperCase())} />
       </Field>
       <Err>{err}</Err>
       <button className="btn pink full authf-go" disabled={busy}>{busy ? 'Creating your account…' : cta}</button>
