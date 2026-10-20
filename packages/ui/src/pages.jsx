@@ -10,7 +10,7 @@ import { naira } from './format.js';
 import { PayChip } from './bits.jsx';
 
 /** Login / sign-up page. Sends people to ?next= (or `home`) afterwards. */
-export function AuthPage({ word, tone = '#120D24', home = '/dashboard', staff = false }) {
+export function AuthPage({ word, tone = 'currentColor', home = '/dashboard', staff = false }) {
   const [params] = useSearchParams();
   const [mode, setMode] = useState(params.get('mode') === 'register' && !staff ? 'register' : 'login');
   const { user } = useAuth();

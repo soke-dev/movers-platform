@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api } from './api.js';
 import { useAuth } from './auth.jsx';
 import { useToast } from './Toast.jsx';
 import { Password, PhoneNG, phoneDigits, MIN_PASSWORD } from './AuthForms.jsx';
-import { displayName, initials, fmtDate } from './format.js';
+import { displayName, fmtDate } from './format.js';
+import { Avatar } from './theme.jsx';
+import { Icon } from './Icon.jsx';
 
 const splitName = (name = '') => {
   const [first, ...rest] = name.split(' ');
@@ -17,10 +19,11 @@ export function ProfilePage() {
     <div className="pg">
       <div className="pg-h"><div><p className="eyebrow">Your account</p><h1>Profile</h1><p className="desc">One Movers account for Movers Learn and Movers Space. Changes here show on both.</p></div></div>
       <div className="panel prof-card">
-        <span className="prof-av">{initials(user.name)}</span>
+        <Avatar user={user} className="prof-av" />
         <div className="prof-id">
           <h2>{user.name}</h2>
           <p>{user.username ? `@${user.username}` : 'No username yet'} · we call you <b>{displayName(user)}</b></p>
+          <PhotoButtons />
         </div>
         <dl className="prof-facts">
           <div><dt>Email</dt><dd>{user.email}</dd></div>
@@ -34,6 +37,68 @@ export function ProfilePage() {
         <Details />
         <PasswordForm />
       </div>
+    </div>
+  );
+}
+
+/** Crops the middle square of a photo and shrinks it to 256×256 JPEG (about 20–40 KB). */
+function squarePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.width, img.height);
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 256, 256);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.86));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('That file isn’t a photo we can open. Try a JPG or PNG.'));
+    };
+    img.src = url;
+  });
+}
+
+function PhotoButtons() {
+  const { user, setUser } = useAuth();
+  const toast = useToast();
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const pick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    try {
+      const { user: u } = await api('/auth/avatar', { method: 'PUT', body: { image: await squarePhoto(file) } });
+      setUser(u);
+      toast('Photo updated.');
+    } catch (x) {
+      toast(x.message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    setBusy(true);
+    try {
+      const { user: u } = await api('/auth/avatar', { method: 'DELETE' });
+      setUser(u);
+      toast('Photo removed.');
+    } catch (x) {
+      toast(x.message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="row" style={{ gap: 8, marginTop: 10 }}>
+      <input ref={input} type="file" accept="image/*" hidden onChange={pick} />
+      <button type="button" className="btn soft sm" disabled={busy} onClick={() => input.current?.click()}><Icon name="camera" />{busy ? 'Saving…' : user.avatarUrl ? 'Change photo' : 'Add a photo'}</button>
+      {user.avatarUrl && <button type="button" className="linkbtn" disabled={busy} onClick={remove}>Remove</button>}
     </div>
   );
 }

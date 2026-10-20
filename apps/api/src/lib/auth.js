@@ -52,5 +52,7 @@ export const publicUser = (u) =>
     referralCode: u.referralCode,
     hasPassword: Boolean(u.passwordHash),
     google: Boolean(u.googleId),
+    // Versioned by when it changed, so browsers can cache each photo for good.
+    avatarUrl: u.avatarAt ? `${env.publicApiUrl}/auth/avatar/${u.id}?v=${new Date(u.avatarAt).getTime()}` : null,
     createdAt: u.createdAt
   };

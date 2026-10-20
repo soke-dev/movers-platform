@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Icon, Logo, QR, useApi, useAuth, naira, fmtDay, fmtShort, daysUntil, weekLabel, COLORS, GROUPS, ADDRESS, PHONE_DISPLAY, LEARN_URL, SPACE_URL, Loading } from '@movers/ui';
+import { Icon, Logo, QR, useApi, useAuth, naira, fmtDay, fmtShort, daysUntil, weekLabel, COLORS, GROUPS, ADDRESS, PHONE_DISPLAY, LEARN_URL, SPACE_URL, Loading, ThemeToggle } from '@movers/ui';
 
 const addDays = (d, n) => {
   const x = new Date(d);
@@ -54,6 +54,7 @@ function Header({ cohort }) {
         <Link className="brand" to="/"><Logo /><span>movers <b>learn</b></span></Link>
         <nav className="l-nav" aria-label="Sections">{links.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
         <div className="head-actions">
+          <ThemeToggle />
           {user ? <Link className="btn ghost hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn ghost hide-m" to="/login">Log in</Link>}
           <Link className="btn pink" to="/apply?kind=full">Apply now</Link>
           <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>

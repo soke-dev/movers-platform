@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Icon, Logo, useApi, useAuth, Loading, ErrorBox, naira, ADDRESS, PHONE_DISPLAY, LEARN_URL } from '@movers/ui';
+import { Icon, Logo, useApi, useAuth, Loading, ErrorBox, naira, ADDRESS, PHONE_DISPLAY, LEARN_URL, ThemeToggle } from '@movers/ui';
 import { BookingWidget } from '../components/BookingWidget.jsx';
 
 /** Soft topographic rings, like the flier. */
@@ -57,6 +57,7 @@ function LandingPage() {
           <Link className="brand" to="/"><Logo tone="#fff" /><span>movers <b>space</b></span></Link>
           <nav className="s-nav">{nav.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
           <div className="s-actions">
+            <ThemeToggle />
             {user ? <Link className="btn wline hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn wline hide-m" to="/login">Log in</Link>}
             <a className="btn amber" href="#book">Book now</a>
             <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>

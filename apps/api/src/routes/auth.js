@@ -198,6 +198,35 @@ r.get('/referrals', requireAuth, ah(async (req, res) => {
   });
 }));
 
+/* ---------- profile photo ---------- */
+
+// The browser crops and shrinks the photo to 256×256 before sending it, so real uploads are ~30 KB.
+const AvatarBody = z.object({ image: z.string().max(600_000, 'That photo is too big.') });
+const MAGIC = { 'image/jpeg': [0xff, 0xd8, 0xff], 'image/png': [0x89, 0x50, 0x4e, 0x47], 'image/webp': [0x52, 0x49, 0x46, 0x46] };
+
+r.put('/avatar', requireAuth, ah(async (req, res) => {
+  const { image } = parse(AvatarBody, req.body);
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(image);
+  const data = m && Buffer.from(m[2], 'base64');
+  if (!m || !MAGIC[m[1]].every((b, i) => data[i] === b)) throw new HttpError(400, 'That file isn’t a photo we can use. Try a JPG or PNG.');
+  if (data.length > 400_000) throw new HttpError(400, 'That photo is too big.');
+  await prisma.avatar.upsert({ where: { userId: req.user.id }, create: { userId: req.user.id, data, type: m[1] }, update: { data, type: m[1] } });
+  res.json({ user: publicUser(await prisma.user.update({ where: { id: req.user.id }, data: { avatarAt: new Date() } })) });
+}));
+
+r.delete('/avatar', requireAuth, ah(async (req, res) => {
+  await prisma.avatar.deleteMany({ where: { userId: req.user.id } });
+  res.json({ user: publicUser(await prisma.user.update({ where: { id: req.user.id }, data: { avatarAt: null } })) });
+}));
+
+/** The photo itself. Shown on learn., space. and admin, so other sites may load it. */
+r.get('/avatar/:id', ah(async (req, res) => {
+  const a = await prisma.avatar.findUnique({ where: { userId: req.params.id } });
+  if (!a) return res.sendStatus(404);
+  res.set({ 'Content-Type': a.type, 'Cache-Control': 'public, max-age=31536000, immutable', 'Cross-Origin-Resource-Policy': 'cross-origin' });
+  res.send(Buffer.from(a.data));
+}));
+
 /* ---------- Google ---------- */
 
 r.get('/providers', (_req, res) => res.json({ google: googleEnabled() }));

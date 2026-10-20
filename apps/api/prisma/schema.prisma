@@ -94,6 +94,8 @@ model User {
   phone        String?
   /// Optional, chosen on the profile page. Stored in lowercase; greetings use it instead of the first name.
   username     String?  @unique
+  /// When the profile photo last changed; the photo itself is in Avatar. Also versions the photo's address.
+  avatarAt     DateTime?
   /// Empty for people who only sign in with Google.
   passwordHash    String?
   /// Set when they enter the code from the confirmation email (or sign in with Google).
@@ -105,6 +107,7 @@ model User {
   createdAt       DateTime  @default(now())
 
   tokens      AuthToken[]
+  avatar      Avatar?
   enrollments Enrollment[]
   payments    Payment[]    @relation("payer")
   submissions Submission[]
@@ -118,6 +121,16 @@ model User {
 enum TokenKind {
   VERIFY_EMAIL
   RESET_PASSWORD
+}
+
+/// Profile photos, kept apart from User so loading a user never loads the image.
+model Avatar {
+  userId    String   @id
+  data      Bytes
+  type      String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 /// 6-digit codes sent by email, to confirm an email or reset a password. Only a hash is stored.

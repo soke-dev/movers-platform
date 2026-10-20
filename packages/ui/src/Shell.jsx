@@ -4,14 +4,14 @@ import { Icon } from './Icon.jsx';
 import { Logo } from './Logo.jsx';
 import { Modal } from './Modal.jsx';
 import { useAuth } from './auth.jsx';
-import { initials } from './format.js';
+import { Avatar, ThemeToggle } from './theme.jsx';
 
 /**
  * Dashboard layout: sidebar on desktop, app bar and bottom tabs on phones.
  * nav: [{ to, label, icon, badge, group }]; tabs: [{ to, label, icon, dot }] (max 4, a "More" tab is added).
  * profile: the profile page's path, which the account box links to.
  */
-export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross, home = '/', profile, children }) {
+export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, cross, home = '/', profile, children }) {
   const { user, logout } = useAuth();
   const [more, setMore] = useState(false);
   const [account, setAccount] = useState(false);
@@ -35,17 +35,21 @@ export function DashShell({ theme = '', word, tone = '#120D24', nav, tabs, cross
           )}
         </nav>
         {cross}
+        <ThemeToggle className="d-theme" label />
         <div className="d-user">
-          <span className="avatar">{initials(user?.name)}</span>
+          <Avatar user={user} />
           {profile
-            ? <Link to={profile} style={{ minWidth: 0, textDecoration: 'none', color: 'inherit' }} title="Your profile"><b>{user?.name}</b><span>{user?.username ? `@${user.username}` : user?.email}</span></Link>
-            : <div style={{ minWidth: 0 }}><b>{user?.name}</b><span>{user?.email}</span></div>}
+            ? <Link className="who" to={profile} title="Your profile"><b>{user?.name}</b><span>{user?.username ? `@${user.username}` : user?.email}</span></Link>
+            : <div className="who"><b>{user?.name}</b><span>{user?.email}</span></div>}
           <button className="btn ghost sm" onClick={out} aria-label="Log out" title="Log out"><Icon name="logout" /></button>
         </div>
       </aside>
       <header className="d-appbar">
         <Link className="brand" to={home}><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
-        <button className="avatar" onClick={() => setAccount(true)} aria-label="Account">{initials(user?.name)}</button>
+        <span className="row" style={{ gap: 8 }}>
+          <ThemeToggle className="btn ghost sm" />
+          <button className="avatar-btn" onClick={() => setAccount(true)} aria-label="Account"><Avatar user={user} /></button>
+        </span>
       </header>
       <main className="d-main">{children}</main>
       <nav className="d-tabs" aria-label="Sections">
