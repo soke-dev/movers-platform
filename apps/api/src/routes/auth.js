@@ -15,7 +15,11 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders
 
 const referralFor = (name) => makeRef(name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 8) || 'MOVER', 4);
 
-const sendVerification = async (user) => sendVerifyEmail(user, await issueCode(user.id, 'VERIFY_EMAIL'));
+/** Tells the person when the email didn't go, instead of leaving them waiting for a code. */
+const mustSend = (sent) => {
+  if (!sent) throw new HttpError(502, 'We couldn’t send the email just now. Try again in a minute, or call us if it keeps happening.');
+};
+const sendVerification = async (user) => mustSend(await sendVerifyEmail(user, await issueCode(user.id, 'VERIFY_EMAIL')));
 
 /** Nigerian numbers only, stored as +234 and 10 digits. Accepts 0803…, 803…, +234803… */
 const NigeriaPhone = z.string().trim().transform((p, ctx) => {
@@ -95,7 +99,7 @@ r.post('/login', limiter, ah(async (req, res) => {
 r.post('/forgot', limiter, ah(async (req, res) => {
   const body = parse(EmailBody, req.body);
   const user = await prisma.user.findUnique({ where: { email: body.email } });
-  if (user) await sendResetEmail(user, await issueCode(user.id, 'RESET_PASSWORD'));
+  if (user) mustSend(await sendResetEmail(user, await issueCode(user.id, 'RESET_PASSWORD')));
   res.json({ ok: true });
 }));
 

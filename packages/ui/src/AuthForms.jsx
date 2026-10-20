@@ -76,10 +76,15 @@ function Resend({ path, email }) {
   const [state, setState] = useState('');
   const send = async () => {
     setState('sending');
-    await api(path, { method: 'POST', body: { email } }).catch(() => {});
-    setState('sent');
+    try {
+      await api(path, { method: 'POST', body: { email } });
+      setState('sent');
+    } catch {
+      setState('failed');
+    }
   };
-  return <button type="button" className="authf-link" disabled={state === 'sending'} onClick={send}>{state === 'sent' ? 'New code sent' : state === 'sending' ? 'Sending…' : 'Send a new code'}</button>;
+  const label = { sent: 'New code sent', sending: 'Sending…', failed: 'Couldn’t send, try again' }[state] || 'Send a new code';
+  return <button type="button" className="authf-link" disabled={state === 'sending'} onClick={send}>{label}</button>;
 }
 
 const Err = ({ children }) => (children ? <p className="authf-err" role="alert">{children}</p> : null);
