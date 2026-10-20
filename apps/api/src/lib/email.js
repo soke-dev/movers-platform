@@ -74,3 +74,23 @@ export const sendReceiptEmail = (user, payment) =>
     text: `Hi ${user.name.split(' ')[0]}, we received ₦${payment.amount.toLocaleString('en-NG')} for ${payment.description}. Reference: ${payment.reference}.`,
     html: layout({ title: 'Payment received', intro: `Hi ${esc(user.name.split(' ')[0])}, we received <b>₦${payment.amount.toLocaleString('en-NG')}</b> for ${esc(payment.description)}.<br><br>Reference: <b>${esc(payment.reference)}</b>`, outro: 'You can see all your receipts in your dashboard.' })
   });
+
+export const sendRefundEmail = (user, payment, refund) => {
+  const amount = `₦${refund.amount.toLocaleString('en-NG')}`;
+  const where = refund.viaMoneyMoves ? 'It’s on its way back the way you paid: your bank account, Money Moves app or wallet.' : 'Our team will pay it back to you, or already has.';
+  return sendEmail({
+    to: user.email,
+    subject: `Refund: ${amount}`,
+    text: `Hi ${user.name.split(' ')[0]}, we've refunded ${amount} of your payment for ${payment.description} (ref ${payment.reference}). ${where}`,
+    html: layout({ title: 'Your refund', intro: `Hi ${esc(user.name.split(' ')[0])}, we’ve refunded <b>${amount}</b> of your payment for ${esc(payment.description)}.<br><br>${where}<br><br>Reference: <b>${esc(payment.reference)}</b>`, outro: 'Questions? Reply on WhatsApp or call the office.' })
+  });
+};
+
+/** Automatic reminders (payments due, quizzes closing, bookings tomorrow...). */
+export const sendReminderEmail = (user, { subject, title, intro, button, link }) =>
+  sendEmail({
+    to: user.email,
+    subject,
+    text: `Hi ${user.name.split(' ')[0]}, ${intro}${link ? `\n${link}` : ''}`,
+    html: layout({ title, intro: `Hi ${esc(user.name.split(' ')[0])}, ${esc(intro)}`, button, link, outro: 'You get this because you have a Movers account.' })
+  });

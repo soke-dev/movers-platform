@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, useApi, useToast, Icon, Modal, Empty, Loading, ErrorBox, Chip, fmtTime, fmtDay, isoDate } from '@movers/ui';
 import { PageHead, UserSearch } from '../shared.jsx';
+import { Scanner } from '../Scanner.jsx';
 
 export default function SpaceToday() {
   const { data, error, loading, reload } = useApi('/admin/space/today');
@@ -58,6 +59,15 @@ function CheckinModal({ onClose, onDone }) {
   const [guest, setGuest] = useState('');
   const [err, setErr] = useState('');
   const [needPass, setNeedPass] = useState(false);
+  const [scan, setScan] = useState(false);
+  const fromCode = async (code) => {
+    setScan(false);
+    try {
+      setWho((await api(`/admin/space/code/${encodeURIComponent(code)}`)).user);
+    } catch (e) {
+      setErr(e.message);
+    }
+  };
   const go = async () => {
     setErr('');
     try {
@@ -83,9 +93,15 @@ function CheckinModal({ onClose, onDone }) {
   return (
     <Modal title="Check someone in" onClose={onClose}>
       <div style={{ marginTop: 14 }}>
-        {!who ? <UserSearch onPick={setWho} /> : (
+        {!who ? (
           <>
-            <div className="row" style={{ justifyContent: 'space-between' }}><b>{who.name}</b><button className="linkbtn" onClick={() => setWho(null)}>Change</button></div>
+            {scan ? <Scanner onCode={fromCode} /> : <UserSearch onPick={setWho} />}
+            {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
+            <button className="linkbtn" style={{ marginTop: 10 }} onClick={() => { setErr(''); setScan(!scan); }}>{scan ? 'Search by name instead' : 'Scan their check-in code'}</button>
+          </>
+        ) : (
+          <>
+            <div className="row" style={{ justifyContent: 'space-between' }}><b>{who.name}</b><button className="linkbtn" onClick={() => { setWho(null); setErr(''); setNeedPass(false); }}>Change</button></div>
             <div className="fields"><div className="field wide"><label htmlFor="g-n">Guest name (only if checking in someone on their pass)</label><input id="g-n" value={guest} onChange={(e) => setGuest(e.target.value)} /></div></div>
             {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
             <div className="sheet-foot">
@@ -94,7 +110,7 @@ function CheckinModal({ onClose, onDone }) {
             </div>
           </>
         )}
-        <p className="small" style={{ marginTop: 12 }}>Members can also check in themselves from their dashboard.</p>
+        <p className="small" style={{ marginTop: 12 }}>Members can also check in themselves from their dashboard, or at the door scanner.</p>
       </div>
     </Modal>
   );

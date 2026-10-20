@@ -388,3 +388,6 @@ td.amt, td.tm { font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
 .book-sum { background: var(--paper); border: 2px solid var(--ink); border-radius: 20px; padding: 22px; box-shadow: 8px 8px 0 var(--amber); display: flex; flex-direction: column; gap: 14px; position: sticky; top: 20px }
 @media (max-width: 960px) { .book-sum { position: static; box-shadow: 6px 6px 0 var(--amber) } }
 .book-sum h3 { font: 900 20px/1.1 var(--f-display); font-stretch: 115%; text-transform: uppercase }
+
+/* Door scanner camera */
+.scanner { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; background: #120D24 }

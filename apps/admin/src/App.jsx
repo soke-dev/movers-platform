@@ -10,6 +10,7 @@ import Tasks from './pages/Tasks.jsx';
 import Attendance from './pages/Attendance.jsx';
 import Announcements from './pages/Announcements.jsx';
 import SpaceToday from './pages/SpaceToday.jsx';
+import Door from './pages/Door.jsx';
 import Bookings from './pages/Bookings.jsx';
 import Members from './pages/Members.jsx';
 import SpaceSettings from './pages/SpaceSettings.jsx';
@@ -33,6 +34,7 @@ function Shell() {
     { to: '/announcements', label: 'Announcements', icon: 'megaphone' },
     { group: 'Movers Space' },
     { to: '/space', label: 'Space today', icon: 'laptop' },
+    { to: '/door', label: 'Door scanner', icon: 'qr' },
     { to: '/bookings', label: 'Bookings', icon: 'clock' },
     { to: '/members', label: 'Members', icon: 'pin' },
     { to: '/space-settings', label: 'Prices & rooms', icon: 'settings' },
@@ -69,6 +71,7 @@ export default function App() {
         <Route path="attendance" element={<Attendance />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="space" element={<SpaceToday />} />
+        <Route path="door" element={<Door />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="members" element={<Members />} />
         <Route path="space-settings" element={<SpaceSettings />} />

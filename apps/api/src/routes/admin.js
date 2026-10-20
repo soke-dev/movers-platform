@@ -6,6 +6,7 @@ import { requireStaff, publicUser } from '../lib/auth.js';
 import { markPaid, markUnpaid, newPayment, paymentView, syncTarget } from '../lib/payments.js';
 import { syncSessions, seatsTaken, cohortView, skillView, getCurrentCohort } from '../lib/cohorts.js';
 import { getSettings } from '../lib/pricing.js';
+import { startRefund, syncRefund, cancelRefund, refundable, goesThroughMoneyMoves, refundView } from '../lib/refunds.js';
 import { BookingInput } from './public.js';
 import { createOrder, usablePass, freeDesk, passView, bookingView } from './space.js';
 
@@ -21,8 +22,10 @@ r.get('/overview', ah(async (_req, res) => {
   const now = new Date();
   const today = startOfDay(now);
   const cohort = await getCurrentCohort();
-  const [collected, pending, unpaidRegs, toGrade, openQuizzes, heldBookings, inNow, sessionsToday, bookingsToday, runningStudents, settings] = await Promise.all([
+  const [collected, refundedThisMonth, refundsWaiting, pending, unpaidRegs, toGrade, openQuizzes, heldBookings, inNow, sessionsToday, bookingsToday, runningStudents, settings] = await Promise.all([
     prisma.payment.aggregate({ where: { status: 'PAID', paidAt: { gte: monthStart() } }, _sum: { amount: true } }),
+    prisma.refund.aggregate({ where: { status: { in: ['PROCESSING', 'COMPLETED'] }, createdAt: { gte: monthStart() } }, _sum: { amount: true } }),
+    prisma.refund.count({ where: { status: 'AWAITING_FUNDS' } }),
     prisma.payment.aggregate({ where: { status: 'PENDING' }, _sum: { amount: true }, _count: true }),
     cohort ? prisma.enrollment.count({ where: { cohortId: cohort.id, payments: { none: { status: { in: ['PAID', 'PENDING'] } } } } }) : 0,
     prisma.submission.count({ where: { score: null, changesRequested: false } }),
@@ -36,7 +39,8 @@ r.get('/overview', ah(async (_req, res) => {
   ]);
   res.json({
     cohort: cohort ? cohortView(cohort, await seatsTaken(cohort.id)) : null,
-    collectedThisMonth: collected._sum.amount || 0,
+    collectedThisMonth: (collected._sum.amount || 0) - (refundedThisMonth._sum.amount || 0),
+    refundsWaiting,
     pendingCount: pending._count,
     pendingAmount: pending._sum.amount || 0,
     unpaidRegistrations: unpaidRegs,
@@ -65,11 +69,21 @@ r.get('/payments', ah(async (req, res) => {
       status,
       ...(q ? { OR: [{ reference: { contains: q, mode: 'insensitive' } }, { user: { name: { contains: q, mode: 'insensitive' } } }, { description: { contains: q, mode: 'insensitive' } }] } : {})
     },
-    include: { user: userBits },
+    include: { user: userBits, refunds: true, booking: { select: { status: true } } },
     orderBy: status === 'PAID' ? { paidAt: 'desc' } : { createdAt: 'desc' },
     take: 150
   });
-  res.json({ payments: payments.map((p) => ({ ...paymentView(p), user: p.user })) });
+  res.json({
+    payments: payments.map((p) => ({
+      ...paymentView(p),
+      user: p.user,
+      refundable: p.status === 'PAID' ? refundable(p, p.refunds) : 0,
+      refundViaMoneyMoves: goesThroughMoneyMoves(p),
+      refundWaiting: p.refunds.some((x) => x.status === 'AWAITING_FUNDS'),
+      // A paid booking that was cancelled later: the money is owed back.
+      refundDue: p.booking?.status === 'CANCELLED' && refundable(p, p.refunds) > 0
+    }))
+  });
 }));
 
 r.post('/payments/:id/confirm', ah(async (req, res) => {
@@ -89,6 +103,49 @@ r.post('/payments/:id/cancel', ah(async (req, res) => {
   const p = await prisma.payment.update({ where: { id: req.params.id }, data: { status: 'CANCELLED' } });
   await syncTarget(p);
   res.json({ payment: paymentView(p) });
+}));
+
+/* ---------------- refunds ---------------- */
+
+const RefundBody = z.object({
+  amount: z.coerce.number().int().positive().optional(),
+  reason: z.string().trim().max(280).default('')
+});
+
+const onlyAdmin = (req) => {
+  if (req.user.role !== 'ADMIN') throw bad('Only an admin can give refunds.');
+};
+
+r.post('/payments/:id/refund', ah(async (req, res) => {
+  onlyAdmin(req);
+  res.status(201).json({ refund: refundView(await startRefund(req.params.id, parse(RefundBody, req.body), req.user.id)) });
+}));
+
+r.get('/refunds', ah(async (req, res) => {
+  const status = String(req.query.status || '');
+  const refunds = await prisma.refund.findMany({
+    where: status === 'open' ? { status: { in: ['AWAITING_FUNDS', 'PROCESSING'] } } : {},
+    include: { payment: { include: { user: userBits } } },
+    orderBy: { createdAt: 'desc' },
+    take: 150
+  });
+  res.json({ refunds: refunds.map((x) => ({ ...refundView(x), payment: { ...paymentView(x.payment), user: x.payment.user } })) });
+}));
+
+const findRefund = async (id) => {
+  const x = await prisma.refund.findUnique({ where: { id } });
+  if (!x) throw notFound('Refund');
+  return x;
+};
+
+/** Asks Money Moves whether the transfer arrived or the refund has reached the customer. */
+r.post('/refunds/:id/check', ah(async (req, res) => {
+  res.json({ refund: refundView(await syncRefund(await findRefund(req.params.id))) });
+}));
+
+r.post('/refunds/:id/cancel', ah(async (req, res) => {
+  onlyAdmin(req);
+  res.json({ refund: refundView(await cancelRefund(await findRefund(req.params.id))) });
 }));
 
 const RecordBody = z.object({
@@ -433,17 +490,55 @@ r.get('/space/today', ah(async (_req, res) => {
 
 const CheckinBody = z.object({ userId: z.string(), guestName: z.string().trim().default('') });
 
-r.post('/space/checkin', ah(async (req, res) => {
-  const { userId, guestName } = parse(CheckinBody, req.body);
+const openVisit = (userId) => prisma.visit.findFirst({ where: { userId, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
+
+async function checkIn(userId, guestName = '') {
   if (!guestName) {
-    const open = await prisma.visit.findFirst({ where: { userId, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
+    const open = await openVisit(userId);
     if (open) throw bad(`Already checked in at desk ${open.desk}.`);
   }
   const pass = await usablePass(userId);
   if (!pass) throw bad('No pass they can use today. Sell them a day pass first.');
   const desk = await freeDesk();
   if (!desk) throw bad('Every desk is taken.');
-  res.status(201).json({ visit: await prisma.visit.create({ data: { userId, passId: pass.id, desk, guestName } }) });
+  return prisma.visit.create({ data: { userId, passId: pass.id, desk, guestName } });
+}
+
+r.post('/space/checkin', ah(async (req, res) => {
+  const { userId, guestName } = parse(CheckinBody, req.body);
+  res.status(201).json({ visit: await checkIn(userId, guestName) });
+}));
+
+/** The check-in QR on a member's dashboard reads "MOVERS:<their referral code>". Typing just the code works too. */
+const userByCode = async (code) => {
+  const ref = String(code || '').trim().toUpperCase().replace(/^MOVERS:/, '');
+  const user = ref && (await prisma.user.findUnique({ where: { referralCode: ref } }));
+  if (!user) throw notFound('A Movers account with that code');
+  return user;
+};
+
+r.get('/space/code/:code', ah(async (req, res) => {
+  res.json({ user: publicUser(await userByCode(req.params.code)) });
+}));
+
+/**
+ * The door scanner. Not in yet: checks them in. In for more than two minutes: checks them out,
+ * so the same code works on the way in and on the way out.
+ */
+r.post('/space/scan', ah(async (req, res) => {
+  const user = publicUser(await userByCode(req.body?.code));
+  const open = await openVisit(user.id);
+  if (open) {
+    if (Date.now() - open.checkedInAt < 2 * 60e3) return res.json({ action: 'already', user, visit: open });
+    const visit = await prisma.visit.update({ where: { id: open.id }, data: { checkedOutAt: new Date() } });
+    return res.json({ action: 'out', user, visit });
+  }
+  try {
+    res.json({ action: 'in', user, visit: await checkIn(user.id) });
+  } catch (e) {
+    if (e.status !== 400) throw e;
+    res.json({ action: /pass/i.test(e.message) ? 'nopass' : 'full', user, message: e.message });
+  }
 }));
 
 r.post('/space/visits/:id/checkout', ah(async (req, res) => {

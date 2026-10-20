@@ -125,5 +125,7 @@ export const paymentView = (p) => ({
   status: p.status,
   dueDate: p.dueDate,
   paidAt: p.paidAt,
-  createdAt: p.createdAt
+  createdAt: p.createdAt,
+  // Money given back so far; only filled in where the query includes refunds.
+  refunded: (p.refunds || []).filter((x) => x.status === 'PROCESSING' || x.status === 'COMPLETED').reduce((s, x) => s + x.amount, 0)
 });

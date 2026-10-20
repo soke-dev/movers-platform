@@ -11,6 +11,7 @@ import learnRoutes from './routes/learn.js';
 import spaceRoutes from './routes/space.js';
 import paymentRoutes, { moneyMovesWebhook } from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
+import { startReminders } from './lib/reminders.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -46,3 +47,4 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(env.port, () => console.log(`Movers API on :${env.port}`));
+startReminders();

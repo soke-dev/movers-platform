@@ -43,6 +43,20 @@ export const createCheckout = ({ amount, description, reference, customer, metad
 
 export const getCheckout = (id) => call(`/checkouts/${encodeURIComponent(id)}`);
 
+export const getPayment = (id) => call(`/payments/${encodeURIComponent(id)}`);
+
+/**
+ * `payment` is the Money Moves payment id. `amount` is in the currency the customer paid in
+ * (NGN, or USD for the app and crypto); leave it out to refund what's left.
+ */
+export const createRefund = ({ payment, amount, reason, idempotencyKey }) =>
+  call('/refunds', { method: 'POST', idempotencyKey, body: { payment, ...(amount != null ? { amount } : {}), ...(reason ? { reason: reason.slice(0, 280) } : {}) } });
+
+/** Retrieving a refund also checks whether our transfer to its account has arrived. */
+export const getRefund = (id) => call(`/refunds/${encodeURIComponent(id)}`);
+
+export const cancelRefund = (id) => call(`/refunds/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
+
 /**
  * Checks the mm-signature header: "t=<unix seconds>,v1=<hex HMAC-SHA256 of `${t}.${rawBody}`>".
  * Rejects signatures older than five minutes.

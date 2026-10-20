@@ -41,18 +41,18 @@ export default function Overview() {
         <div className="card ck">
           <span className="k">Check-in</span>
           <div className="checkin">
-            <QR value={data.checkinCode} size={104} label="Your check-in code" />
+            <div style={{ textAlign: 'center' }}><QR value={data.checkinCode} size={104} label="Your check-in code" /><div className="small tm">{data.referralCode}</div></div>
             <div>
               {data.openVisit ? (
                 <>
                   <p style={{ font: '800 18px/1.2 var(--f-display)' }}>Checked in at {fmtTime(data.openVisit.checkedInAt)}</p>
-                  <p className="sub">Desk {data.openVisit.desk}. Check out when you leave so your hours are right.</p>
+                  <p className="sub">Desk {data.openVisit.desk}. Scan your code at the door or tap Check out when you leave, so your hours are right.</p>
                   <button className="btn soft sm" style={{ marginTop: 10 }} disabled={busy} onClick={() => act('/space/checkout', 'Checked out. See you next time.')}>Check out</button>
                 </>
               ) : (
                 <>
                   <p style={{ font: '800 18px/1.2 var(--f-display)' }}>You’re not checked in</p>
-                  <p className="sub">Show this code at the front desk, or check in here when you arrive.</p>
+                  <p className="sub">Scan this code at the door or show it at the front desk, or check in here when you arrive.</p>
                   <button className="btn blue sm" style={{ marginTop: 10 }} disabled={busy || !p} onClick={() => act('/space/checkin', 'Checked in. Welcome to Movers Space.')}>Check in now</button>
                   {!p && <p className="small" style={{ marginTop: 6 }}>You need a pass first. <Link className="more" to="/dashboard/book">Buy one</Link></p>}
                 </>

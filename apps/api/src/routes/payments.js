@@ -5,6 +5,7 @@ import { ah, parse, notFound } from '../lib/util.js';
 import { requireAuth } from '../lib/auth.js';
 import { startPayment, markPaid, settleOnline, paymentView } from '../lib/payments.js';
 import { validSignature } from '../lib/moneymoves.js';
+import { refundFromWebhook } from '../lib/refunds.js';
 
 const r = Router();
 
@@ -28,7 +29,7 @@ r.get('/verify', requireAuth, ah(async (req, res) => {
   res.json({ payment: paymentView(await settleOnline(payment)) });
 }));
 
-/** Money Moves calls this after a payment. The raw body is needed to check the signature. */
+/** Money Moves calls this after a payment or a refund. The raw body is needed to check the signature. */
 export const moneyMovesWebhook = ah(async (req, res) => {
   if (!validSignature(req.body, req.headers['mm-signature'])) return res.sendStatus(401);
   const event = JSON.parse(req.body.toString('utf8'));
@@ -41,6 +42,7 @@ export const moneyMovesWebhook = ah(async (req, res) => {
       await markPaid(payment.id, null, 'ONLINE');
     }
   }
+  if (event.type === 'refund.created' || event.type === 'refund.completed') await refundFromWebhook(event.data?.object);
   res.sendStatus(200);
 });
 

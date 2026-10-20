@@ -40,6 +40,7 @@ export function Receipt({ p }) {
       <div><span>Item</span><span style={{ textAlign: 'right' }}>{p.description}</span></div>
       <div><span>Paid via</span><span>{METHOD[p.method] || '—'}</span></div>
       <div style={{ borderTop: '1px dashed var(--line)', paddingTop: 8, fontWeight: 600 }}><span>Amount</span><span>{naira(p.amount)}</span></div>
+      {p.refunded > 0 && <div><span>Refunded</span><span>−{naira(p.refunded)}</span></div>}
     </div>
   );
 }

@@ -71,8 +71,8 @@ r.get('/me', ah(async (req, res) => {
     prisma.pass.findMany({ where: { userId: uid }, orderBy: { createdAt: 'desc' }, include: { visits: true } }),
     prisma.visit.findMany({ where: { userId: uid, checkedInAt: { gte: addDays(monthStart, -62) } }, orderBy: { checkedInAt: 'desc' } }),
     prisma.visit.findFirst({ where: { userId: uid, checkedInAt: { gte: startOfDay() }, checkedOutAt: null } }),
-    prisma.booking.findMany({ where: { userId: uid }, orderBy: { start: 'desc' }, take: 40, include: { room: true, payments: true } }),
-    prisma.payment.findMany({ where: { userId: uid, purpose: { in: ['BOOKING', 'PASS'] } }, orderBy: { createdAt: 'desc' } }),
+    prisma.booking.findMany({ where: { userId: uid }, orderBy: { start: 'desc' }, take: 40, include: { room: true, payments: { include: { refunds: true } } } }),
+    prisma.payment.findMany({ where: { userId: uid, purpose: { in: ['BOOKING', 'PASS'] } }, orderBy: { createdAt: 'desc' }, include: { refunds: true } }),
     prisma.user.findMany({ where: { referredById: uid }, select: { name: true, createdAt: true, _count: { select: { visits: true } } } }),
     isStudent(uid)
   ]);

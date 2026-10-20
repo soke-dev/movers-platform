@@ -109,6 +109,8 @@ async function main() {
           email,
           name: process.env.ADMIN_NAME || 'Movers Admin',
           passwordHash: password ? await bcrypt.hash(password, 10) : null,
+          // On your own computer, a password in .env is enough to log in; in production the email confirms it.
+          emailVerifiedAt: password && process.env.NODE_ENV !== 'production' ? new Date() : null,
           role: 'ADMIN',
           referralCode: 'ADMIN-' + Date.now().toString(36).toUpperCase()
         }

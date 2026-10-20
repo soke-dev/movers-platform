@@ -20,22 +20,28 @@ Payments: online through **Money Moves** (bank transfer, Money Moves app, stable
 
 ## Run it on your computer
 
-You need Node.js 20+ and a Postgres database (a free Railway Postgres works, or one on your machine).
+You need Node.js 20+. Nothing else: a Postgres database comes with the project.
 
 ```bash
 npm install
-cp apps/api/.env.example apps/api/.env      # then set DATABASE_URL, JWT_SECRET, ADMIN_EMAIL
-npm run db:migrate                          # creates the tables
-npm run db:seed                             # adds the class, 12 skills, Space prices, rooms and your admin login
-
-npm run dev:api     # http://localhost:4000
-npm run dev:learn   # http://localhost:5173
-npm run dev:space   # http://localhost:5174
-npm run dev:admin   # http://localhost:5175
+npm run dev
 ```
 
-With `DEV_FAKE_PAYMENTS=true` in `apps/api/.env`, "Pay online" succeeds straight away so you can test without
-Money Moves. Remove it once you add your Money Moves test key.
+`npm run dev` starts a local database (kept in `.pgdata/`), creates the `.env` files with local settings the
+first time, updates the tables, adds the starting data, then runs everything:
+
+| | |
+| --- | --- |
+| Learn | http://localhost:5173 |
+| Space | http://localhost:5174 |
+| Admin | http://localhost:5175 (log in as `admin@movers.local` / `movers-admin`) |
+| API | http://localhost:4000 |
+
+Ctrl+C stops it all. To start again from an empty database, stop it and delete `.pgdata/`.
+To run the parts one at a time: `npm run db:local`, then `npm run dev:api`, `dev:learn`, `dev:space`, `dev:admin`.
+
+With `DEV_FAKE_PAYMENTS=true` in `apps/api/.env` (the local default), "Pay online" succeeds straight away so you
+can test without Money Moves. Remove it once you add your Money Moves test key.
 
 Without `RESEND_API_KEY`, emails aren't sent: the API prints each one (with its link) in its console, and
 `http://localhost:4000/auth/dev-outbox` lists them.
@@ -111,7 +117,8 @@ After that, log in at admin.moverstech.xyz. If the link expires, restart the api
 ### 6. Money Moves
 1. Money Moves dashboard → **Developers → API keys**: copy the secret key into `MONEYMOVES_SECRET_KEY`.
 2. **Developers → Webhooks** → add endpoint `https://api.moverstech.xyz/payments/moneymoves/webhook`,
-   choose the **payment.successful** event, and copy its signing secret into `MONEYMOVES_WEBHOOK_SECRET`.
+   choose the **payment.successful**, **refund.created** and **refund.completed** events, and copy its signing
+   secret into `MONEYMOVES_WEBHOOK_SECRET`.
 3. Test with your test key and a test payment, then switch both the key and the webhook secret to live.
    Test and live have different secrets.
 
@@ -150,11 +157,22 @@ Authorised redirect URI: `https://api.moverstech.xyz/auth/google/callback`.
 - **Skills:** add, edit, hide; weeks place each skill on the 8-week plan.
 - **Quizzes & tasks:** set quizzes and projects, grade, request changes, see who hasn't taken a quiz and
   remind them on WhatsApp.
-- **Space today:** check people in (sell a day pass at the desk if they don't have one), check them out.
+- **Payments → Paid → Refund** (admins only): online payments go back through Money Moves the way the person
+  paid. You get a one-time bank account and an amount: transfer it from the business account and Money Moves
+  sends the money on (Money Moves returns its fee, so you send a little less). Cash, POS and WhatsApp payments
+  you pay back yourself, then record here. Either way the person gets an email. **Payments → Refunds** shows
+  each one, its transfer details and "Check now". Paid bookings that were cancelled show "refund due".
+- **Space today:** check people in (by name, or scan their code), sell a day pass at the desk, check them out.
+- **Door scanner:** leave it open on a phone or tablet at the door. Members scan the code on their dashboard
+  on the way in and again on the way out. Works with the camera, or a handheld scanner.
 - **Team** (admins only): give staff access. Staff sign up on either website first.
 
+## Automatic reminders
+Once `RESEND_API_KEY` is set, the API emails reminders between 8:00 and 20:00, each one once:
+class fees and hall balances due in 3 days or overdue, quizzes closing and projects due within a day (for
+students who haven't done them), room and hall bookings the next day, and monthly passes or dedicated desks
+ending in 3 days. Set `REMINDERS=off` on the api service to stop them.
+
 ## Things to add later
-- Automatic reminders by email and WhatsApp. Today receipts are emailed; reminders open WhatsApp with the
+- Automatic WhatsApp messages (needs a WhatsApp Business API account). Today WhatsApp reminders open with the
   message filled in and staff press send.
-- A door scanner for check-in QR codes. Today members tap "Check in" or staff check them in from admin.
-- Refunds through Money Moves.

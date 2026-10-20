@@ -79,7 +79,7 @@ r.get('/me', ah(async (req, res) => {
   const enrollment = await prisma.enrollment.findFirst({
     where: { userId: req.user.id },
     orderBy: { cohort: { startDate: 'desc' } },
-    include: { cohort: true, skills: { include: { skill: true } }, payments: { orderBy: { createdAt: 'asc' } } }
+    include: { cohort: true, skills: { include: { skill: true } }, payments: { orderBy: { createdAt: 'asc' }, include: { refunds: true } } }
   });
   const allSkills = (await prisma.skill.findMany({ where: { visible: true }, orderBy: { sortOrder: 'asc' } })).map(skillView);
   const announcementsWhere = { OR: [{ audience: 'EVERYONE' }, { audience: 'ALL_STUDENTS' }] };

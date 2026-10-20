@@ -233,9 +233,45 @@ model Payment {
   enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
   booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   pass       Pass?       @relation(fields: [passId], references: [id], onDelete: SetNull)
+  refunds    Refund[]
 
   @@index([status])
   @@index([userId])
+}
+
+enum RefundStatus {
+  AWAITING_FUNDS
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+/// Money given back on a paid payment. Online payments are refunded through Money Moves
+/// (staff first transfer the amount to the account it gives); others are paid back by staff and recorded here.
+model Refund {
+  id            String       @id @default(cuid())
+  paymentId     String
+  amount        Int
+  reason        String       @default("")
+  viaMoneyMoves Boolean      @default(false)
+  status        RefundStatus
+  /// Money Moves refund id.
+  gatewayRef    String?      @unique
+  /// Where to send the money for a Money Moves refund: { amount, bank, accountNumber, accountName, expiresAt }.
+  funding       Json?
+  createdById   String?
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+}
+
+/// Automatic reminders already sent, so each goes out once. The key names the reminder, e.g. "quiz:<quizId>:<userId>".
+model ReminderSent {
+  key    String   @id
+  sentAt DateTime @default(now())
 }
 
 model ClassSession {

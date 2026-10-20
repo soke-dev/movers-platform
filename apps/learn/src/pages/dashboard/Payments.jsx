@@ -31,7 +31,7 @@ export default function Payments() {
                 <td>{p.status === 'PAID' ? fmtDate(p.paidAt) : p.dueDate ? fmtDate(p.dueDate) : '—'}</td>
                 <td>{METHOD[p.method] || '—'}</td>
                 <td className="amt">{naira(p.amount)}</td>
-                <td><PayChip status={p.status} /></td>
+                <td><PayChip status={p.status} />{p.refunded > 0 && <div className="small">Refunded {naira(p.refunded)}</div>}</td>
                 <td>
                   {p.status === 'PAID' && <button className="linkbtn" onClick={() => setModal({ receipt: p })}>Receipt</button>}
                   {p.status === 'UNPAID' && <button className="btn pink sm" onClick={() => setModal({ pay: p })}>Pay now</button>}
