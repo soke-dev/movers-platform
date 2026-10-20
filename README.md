@@ -18,7 +18,7 @@ tries. Emails (codes, receipts, reminders) go out through **Resend**.
 Signing up for the class, booking a space and logging in all open as pop-ups on the page you're on.
 
 Payments: online through **Money Moves** (bank transfer, Money Moves app, stablecoin), on **WhatsApp**
-(staff confirm the transfer in admin), **at the office** (cash/POS, staff mark it paid), or **pay later**.
+(staff confirm the transfer in admin), **at the office** (cash, POS or bank transfer, staff mark it paid), or **pay later**.
 
 ---
 
@@ -152,7 +152,7 @@ Authorised redirect URIs: `https://api.moverstech.xyz/auth/google/callback`, and
 
 - **Payments → Waiting to confirm:** WhatsApp and office payments. "Confirm received" marks it paid and the
   student or member sees it straight away. "Not received" sends it back to unpaid.
-- **Payments → Record a payment:** cash or POS at the desk. Pick the person and mark what they owe as paid.
+- **Payments → Record a payment:** cash, POS or bank transfer at the desk. Pick the person and mark what they owe as paid.
 - **Classes:** dates, days and times, seats, prices, two-payment option, laptop, support and mentorship
   notes. "Show on website" picks which class people sign up for. Class days drive the attendance register.
 - **Skills:** add, edit, hide; weeks place each skill on the 8-week plan.

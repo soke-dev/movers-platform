@@ -10,6 +10,18 @@ const addDays = (d, n) => {
 export const weekSpan = (start, a, b = a) => `${fmtShort(addDays(start, 7 * (a - 1)))} – ${fmtShort(addDays(start, 7 * (b - 1) + 5))}`;
 export const skillColors = (s) => COLORS[s.color] || COLORS.violet;
 
+/** The questions people ask about the class, as [question, answer]. */
+export const classFaqs = (c) => [
+  ['Do I need to know how to code already?', 'No. The class starts from zero. If you can use a phone and a browser, you can start.'],
+  ['Do I need my own laptop?', `Yes. ${c.laptopNote}`],
+  ['Can I take just one skill?', `Yes. Each skill is ${naira(c.skillPrice)} and you join the class for that skill’s weeks. You still present at Demo Day${c.mentorshipNote ? ` and get the ${c.mentorshipNote.toLowerCase()}` : ''}. Once you pick a few, the full class at ${naira(c.fullPrice)} is the better deal.`],
+  ...(c.supportNote ? [['Can I get help outside class?', `Yes. You get ${c.supportNote.toLowerCase()}, on the full class and on single skills.`]] : []),
+  ['What if I miss a class?', `${c.saturdayNote || 'Ask your instructor about catching up'}. You need 80% attendance for your certificate.`],
+  ['Can I pay later or in parts?', `You can register now and pay later, but your seat is only secured once you pay.${c.allowTwoPayments ? ` The full class can also be paid in two parts of ${naira(Math.round(c.fullPrice / 2))}.` : ''} Single skills are paid in one go.`],
+  ['What happens after the class?', `Everyone presents a project at Demo Day on ${fmtDay(c.demoDate)}.${c.mentorshipNote ? ` After that you get ${c.mentorshipNote.toLowerCase()}, whether you took the full class or single skills.` : ''}`],
+  ['Do I get a certificate?', 'Yes, after Demo Day, once you’ve met the attendance, project and fee requirements.']
+];
+
 /** Places skills on the 8-week plan: each gets the first row where it doesn't overlap another. */
 export function planRows(skills, weeks) {
   const rows = [];
@@ -279,6 +291,9 @@ function LandingPage() {
             <p className="small muted">Paid in one go</p>
             <ul>
               <li><Icon name="check" /><span>Join the class for that skill’s weeks</span></li>
+              <li><Icon name="check" /><span>Demo Day {fmtDay(c.demoDate)}</span></li>
+              {c.supportNote && <li><Icon name="check" /><span>{c.supportNote}</span></li>}
+              {c.mentorshipNote && <li><Icon name="check" /><span>{c.mentorshipNote}</span></li>}
               <li><Icon name="laptop" /><span>Bring your own laptop</span></li>
               <li><Icon name="check" /><span>Pick as many skills as you like</span></li>
               <li><Icon name="check" /><span>Pick a few and the full class may cost less</span></li>
@@ -292,15 +307,7 @@ function LandingPage() {
       <section className="sec wrap" id="faq">
         <div className="sec-head"><p className="eyebrow">Questions</p><h2>Things people ask us.</h2></div>
         <div className="faq">
-          {[
-            ['Do I need to know how to code already?', 'No. The class starts from zero. If you can use a phone and a browser, you can start.'],
-            ['Do I need my own laptop?', `Yes. ${c.laptopNote}`],
-            ['Can I take just one skill?', `Yes. Each skill is ${naira(c.skillPrice)} and you join the class for that skill’s weeks. Once you pick a few, the full class at ${naira(c.fullPrice)} is the better deal.`],
-            ['What if I miss a class?', `${c.saturdayNote || 'Ask your instructor about catching up'}. You need 80% attendance for your certificate.`],
-            ['Can I pay later or in parts?', `You can register now and pay later, but your seat is only secured once you pay.${c.allowTwoPayments ? ` The full class can also be paid in two parts of ${naira(Math.round(c.fullPrice / 2))}.` : ''} Single skills are paid in one go.`],
-            ['What happens after the class?', [c.mentorshipNote, c.supportNote && `During the class you also have ${c.supportNote.toLowerCase()}`].filter(Boolean).join('. ') + '.'],
-            ['Do I get a certificate?', 'Yes, after Demo Day, once you’ve met the attendance, project and fee requirements.']
-          ].map(([q, a], i) => (
+          {classFaqs(c).map(([q, a], i) => (
             <details key={q} open={i === 1}><summary>{q}<span className="pm"><Icon name="plus" /></span></summary><p>{a}</p></details>
           ))}
         </div>

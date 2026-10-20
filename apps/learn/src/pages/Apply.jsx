@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, useApi, useAuth, Icon, Modal, LoginForm, RegisterForm, PayFlow, Loading, ErrorBox, naira, fmtDay, weekLabel } from '@movers/ui';
-import { weekSpan } from './Landing.jsx';
+import { weekSpan, classFaqs } from './Landing.jsx';
 
 /** Sign-up for the class, as a pop-up over the landing page (/apply?kind=full|single&plan=two&skill=…). */
 export default function Apply() {
@@ -35,12 +35,14 @@ export default function Apply() {
     setPicked(n);
   };
 
-  async function enroll() {
+  /** Saves the registration. "later" skips paying now and goes to the dashboard, where they can pay any time. */
+  async function enroll(later = false) {
     setErr('');
     if (kind === 'SINGLE' && !picked.size) return setErr('Pick at least one skill.');
-    setBusy(true);
+    setBusy(later ? 'later' : 'pay');
     try {
       const r = await api('/learn/enroll', { method: 'POST', body: { kind, plan: two ? 'TWO' : 'FULL', skillIds: [...picked] } });
+      if (later) return navigate('/dashboard');
       setPayment(r.payment);
     } catch (e) {
       setErr(e.message);
@@ -71,10 +73,13 @@ export default function Apply() {
           <>
             <h1 id="applyTitle">What do you want to learn?</h1>
             <p className="small" style={{ marginTop: 6 }}>{c.code} · starts {fmtDay(c.startDate)} · {c.scheduleText} · in person</p>
-            <div className="note" style={{ marginTop: 14 }}><Icon name="laptop" /><span><b>You need your own laptop.</b> {c.laptopNote}</span></div>
+            <details className="apply-faq">
+              <summary>Questions about the class<Icon name="plus" /></summary>
+              <dl>{classFaqs(c).map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}</dl>
+            </details>
             <div className="opts" style={{ marginTop: 14 }}>
               <label className="opt"><input type="radio" name="kind" checked={kind === 'FULL'} onChange={() => setKind('FULL')} /><div><b>{c.name}</b><span>All {skills.length} skills · Demo Day {fmtDay(c.demoDate)}{c.mentorshipNote ? ` · ${c.mentorshipNote}` : ''}</span></div><span className="amt">{naira(c.fullPrice)}</span></label>
-              <label className="opt"><input type="radio" name="kind" checked={kind === 'SINGLE'} onChange={() => setKind('SINGLE')} /><div><b>Single skills</b><span>Join the class for just the skills you pick</span></div><span className="amt">{naira(c.skillPrice)} each</span></label>
+              <label className="opt"><input type="radio" name="kind" checked={kind === 'SINGLE'} onChange={() => setKind('SINGLE')} /><div><b>Single skills</b><span>Just the skills you pick · Demo Day {fmtDay(c.demoDate)}{c.mentorshipNote ? ` · ${c.mentorshipNote}` : ''}</span></div><span className="amt">{naira(c.skillPrice)} each</span></label>
             </div>
 
             {kind === 'FULL' && c.allowTwoPayments && (
@@ -110,8 +115,10 @@ export default function Apply() {
             {err && <p className="err" style={{ marginTop: 12 }}>{err} {err.includes('already registered') && <Link className="linkbtn" to="/dashboard">Open my dashboard</Link>}</p>}
             <div className="sheet-foot">
               <button className="btn ghost" onClick={close}>Back</button>
-              <button className="btn pink" disabled={busy} onClick={enroll}>{busy ? 'Saving…' : 'Continue to payment'}</button>
+              <button className="btn line" disabled={!!busy} onClick={() => enroll(true)}>{busy === 'later' ? 'Saving…' : 'Pay later'}</button>
+              <button className="btn pink" disabled={!!busy} onClick={() => enroll()}>{busy === 'pay' ? 'Saving…' : 'Continue to payment'}</button>
             </div>
+            <p className="small" style={{ textAlign: 'right', marginTop: 8 }}>Pay later saves your registration. Your seat is secured once you pay, from your dashboard.</p>
           </>
         )}
 
@@ -121,7 +128,6 @@ export default function Apply() {
             <PayFlow
               payment={payment}
               lines={lines}
-              note={<><b>Bring your own laptop.</b> {c.laptopNote}</>}
               allowLater
               hold="We hold your seat for 48 hours."
               laterText={`Your registration is saved. Pay before ${fmtDay(c.startDate)} from your dashboard, on WhatsApp or at the office to secure your seat. Seats go to people who pay first.`}

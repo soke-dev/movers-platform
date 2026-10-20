@@ -48,7 +48,7 @@ export default function Payments() {
         <ul className="list">
           <li><span className="ib" style={{ background: 'var(--violet)', color: '#fff' }}><Icon name="card" /></span><div><div className="t">Online with Money Moves</div><div className="d">Bank transfer, the Money Moves app or stablecoin. Confirmed automatically.</div></div><span /></li>
           <li><span className="ib" style={{ background: 'var(--wa)', color: '#fff' }}><Icon name="chat" /></span><div><div className="t">WhatsApp</div><div className="d">{PHONE_DISPLAY}. Confirmed within 1 working hour.</div></div><span /></li>
-          <li><span className="ib" style={{ background: 'var(--amber)' }}><Icon name="store" /></span><div><div className="t">At the office</div><div className="d">Cash or POS at {ADDRESS}, Mon–Sat 9:00–18:00.</div></div><span /></li>
+          <li><span className="ib" style={{ background: 'var(--amber)' }}><Icon name="store" /></span><div><div className="t">At the office</div><div className="d">Cash, POS or bank transfer at {ADDRESS}, Mon–Sat 9:00–18:00.</div></div><span /></li>
         </ul>
       </div>
       {modal?.pay && <PayModal payment={modal.pay} onClose={() => setModal(null)} onDone={reload} />}
@@ -58,7 +58,7 @@ export default function Payments() {
           <div className="done" style={{ marginTop: 12 }}>
             <span className="paycode">{modal.code.reference}</span>
             <QR value={modal.code.reference} />
-            <p>Show this at the front desk, {ADDRESS}. Cash or POS, Mon–Sat 9:00–18:00.</p>
+            <p>Show this at the front desk, {ADDRESS}. Cash, POS or bank transfer, Mon–Sat 9:00–18:00.</p>
           </div>
         </Modal>
       )}

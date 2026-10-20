@@ -47,7 +47,7 @@ export default function Payments() {
       {modal?.receipt && <Modal title="Receipt" onClose={() => setModal(null)}><Receipt p={modal.receipt} /></Modal>}
       {modal?.code && (
         <Modal title="Payment code" onClose={() => setModal(null)}>
-          <div className="done" style={{ marginTop: 12 }}><span className="paycode">{modal.code.reference}</span><QR value={modal.code.reference} /><p>Show this at the front desk, {ADDRESS}. Cash or POS, Mon–Sat 9:00–18:00.</p></div>
+          <div className="done" style={{ marginTop: 12 }}><span className="paycode">{modal.code.reference}</span><QR value={modal.code.reference} /><p>Show this at the front desk, {ADDRESS}. Cash, POS or bank transfer, Mon–Sat 9:00–18:00.</p></div>
         </Modal>
       )}
     </div>

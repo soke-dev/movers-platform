@@ -101,7 +101,7 @@ function RecordModal({ onClose, onDone }) {
   };
   return (
     <Modal title="Record a payment" onClose={onClose} wide>
-      <p className="small" style={{ marginTop: 6 }}>For cash or POS at the front desk, or a transfer you’ve checked yourself.</p>
+      <p className="small" style={{ marginTop: 6 }}>For cash, POS or a bank transfer at the front desk, or a transfer you’ve checked yourself.</p>
       <div style={{ marginTop: 14 }}>
         {!who ? <UserSearch onPick={setWho} /> : (
           <>
@@ -119,7 +119,7 @@ function RecordModal({ onClose, onDone }) {
               <div className="fields" style={{ marginTop: 8 }}>
                 <div className="field wide"><label htmlFor="r-d">What for</label><input id="r-d" required value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="e.g. Day pass, printing" /></div>
                 <div className="field"><label htmlFor="r-a">Amount (₦)</label><input id="r-a" type="number" min="1" required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} /></div>
-                <div className="field"><label htmlFor="r-m">Paid via</label><select id="r-m" value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })}><option value="OFFICE">At the office (cash/POS)</option><option value="WHATSAPP">Transfer (WhatsApp)</option></select></div>
+                <div className="field"><label htmlFor="r-m">Paid via</label><select id="r-m" value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })}><option value="OFFICE">At the office (cash, POS or transfer)</option><option value="WHATSAPP">Transfer (WhatsApp)</option></select></div>
               </div>
               {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
               <div className="sheet-foot"><button type="button" className="btn ghost" onClick={onClose}>Cancel</button><button className="btn ink">Record payment</button></div>

@@ -8,7 +8,7 @@ import { PHONE_DISPLAY, ADDRESS } from './config.js';
 const MODES = [
   { id: 'ONLINE', icon: 'card', bg: 'var(--violet)', name: 'Pay online', desc: 'Bank transfer, the Money Moves app or stablecoin, through Money Moves. Confirmed automatically.' },
   { id: 'WHATSAPP', icon: 'chat', bg: 'var(--wa)', name: 'Pay on WhatsApp', desc: 'Chat with our accounts team. They send bank details and confirm your proof, usually within 1 working hour.' },
-  { id: 'OFFICE', icon: 'store', bg: 'var(--amber)', name: 'Pay at the office', desc: `Cash or POS at ${ADDRESS}. Mon–Sat, 9:00–18:00.` }
+  { id: 'OFFICE', icon: 'store', bg: 'var(--amber)', name: 'Pay at the office', desc: `Cash, POS or bank transfer at ${ADDRESS}. Mon–Sat, 9:00–18:00.` }
 ];
 
 /**
@@ -75,7 +75,7 @@ export function PayFlow({ payment, lines = [], note, allowLater = false, hold = 
           <h3 id="mTitle">Your payment code</h3>
           <span className="paycode">{result.reference}</span>
           <QR value={result.reference} />
-          <p>Show this at the front desk, {ADDRESS}. Cash or POS, Mon–Sat 9:00–18:00. {hold}</p>
+          <p>Show this at the front desk, {ADDRESS}. Cash, POS or bank transfer, Mon–Sat 9:00–18:00. {hold}</p>
           <p className="fine">The code is saved in your Payments page.</p>
           {finish}
         </div>
