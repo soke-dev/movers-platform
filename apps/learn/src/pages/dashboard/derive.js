@@ -44,3 +44,14 @@ export function derive(data) {
     average: graded.length ? Math.round(graded.reduce((s, a) => s + (a.submission.score / a.maxScore) * 100, 0) / graded.length) : null
   };
 }
+
+/**
+ * Whether they can still change their plan or skills: registration is open (the class hasn't started)
+ * and nothing is paid or waiting to be confirmed. With a payment waiting, they cancel it first.
+ */
+export function planChange(payments, startDate, isOpen = true) {
+  if (payments.some((p) => p.status === 'PAID')) return { can: false, why: '' };
+  if (!isOpen || new Date() >= new Date(startDate)) return { can: false, why: 'Registration has closed, so the plan can’t change now.' };
+  if (payments.some((p) => p.status === 'PENDING')) return { can: false, why: 'To change your plan or skills, cancel the payment being confirmed first.' };
+  return { can: true, why: '' };
+}

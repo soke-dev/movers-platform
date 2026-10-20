@@ -25,11 +25,16 @@ r.post('/enroll', ah(async (req, res) => {
     include: { payments: true }
   });
   if (existing) {
+    // The plan can change until they've paid or sent a payment to confirm, and until the class starts.
     if (existing.payments.some((p) => p.status === 'PAID')) {
       throw new HttpError(409, `You’ve already paid for ${cohort.code}. Call or WhatsApp us to change your plan.`);
     }
-    // Nothing paid yet: they can change their plan. The old payments are cancelled, not left owing.
-    await prisma.payment.updateMany({ where: { enrollmentId: existing.id, status: { in: ['UNPAID', 'PENDING'] } }, data: { status: 'CANCELLED' } });
+    if (existing.payments.some((p) => p.status === 'PENDING')) {
+      throw new HttpError(409, 'You have a payment waiting to be confirmed. Cancel it first to change your plan.');
+    }
+    if (new Date() >= cohort.startDate) throw new HttpError(409, `${cohort.code} has started, so registration is closed. Call or WhatsApp us to change your plan.`);
+    // The old payments are cancelled, not left owing.
+    await prisma.payment.updateMany({ where: { enrollmentId: existing.id, status: 'UNPAID' }, data: { status: 'CANCELLED' } });
     await prisma.enrollment.delete({ where: { id: existing.id } });
   }
 
@@ -132,7 +137,7 @@ r.get('/classes', ah(async (req, res) => {
   const [enrollments, open] = await Promise.all([
     prisma.enrollment.findMany({
       where: { userId: req.user.id },
-      include: { cohort: true, skills: { include: { skill: true } }, payments: { where: { status: { not: 'CANCELLED' } } } },
+      include: { cohort: true, skills: { include: { skill: true } }, payments: { where: { status: { not: 'CANCELLED' } }, orderBy: { createdAt: 'asc' }, include: { refunds: true } } },
       orderBy: { cohort: { startDate: 'desc' } }
     }),
     getCurrentCohort()
@@ -140,11 +145,12 @@ r.get('/classes', ah(async (req, res) => {
   res.json({
     classes: enrollments.map((e) => ({
       id: e.id,
-      cohort: { id: e.cohort.id, name: e.cohort.name, code: e.cohort.code, startDate: e.cohort.startDate, demoDate: e.cohort.demoDate, weeks: e.cohort.weeks, scheduleText: e.cohort.scheduleText, location: e.cohort.location },
+      cohort: { ...cohortView(e.cohort), isCurrent: e.cohort.isCurrent },
       stage: stageOf(e.cohort),
       kind: e.kind,
       plan: e.plan,
-      skills: e.skills.map((s) => s.skill.name),
+      skills: e.skills.map((s) => skillView(s.skill)),
+      payments: e.payments.map(paymentView),
       total: e.total,
       paid: e.payments.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0),
       secured: e.payments.some((p) => p.status === 'PAID')

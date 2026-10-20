@@ -3,6 +3,7 @@ import { Icon, Modal, QR, Receipt, PayChip, Table, Empty, naira, fmtDate, METHOD
 import { useLearn } from './Dashboard.jsx';
 import { PayModal, CancelPayModal } from './modals.jsx';
 import { NotEnrolled } from './Course.jsx';
+import { planChange } from './derive.js';
 import Apply from '../Apply.jsx';
 
 export default function Payments() {
@@ -13,10 +14,11 @@ export default function Payments() {
   const payments = e.payments;
   const paid = d.paid.reduce((s, p) => s + p.amount, 0);
   const owed = d.owing.reduce((s, p) => s + p.amount, 0);
+  const change = planChange(payments, data.cohort.startDate);
   return (
     <div className="pg">
       <div className="pg-h"><div><p className="eyebrow">{data.cohort.code} · {e.kind === 'FULL' ? (e.plan === 'TWO' ? 'Two payments' : 'Paid in one go') : 'Single skills'}</p><h1>Payments</h1><p className="desc">Pay online through Money Moves, on WhatsApp, or in person at the office. Every payment gets a receipt here.</p></div>
-        {!d.secured && <button className="btn line" onClick={() => setModal({ plan: true })}>Change plan</button>}
+        {change.can && <button className="btn line" onClick={() => setModal({ plan: true })}>Change plan or skills</button>}
       </div>
       <div className="stats">
         <div className="card"><span className="k">Total</span><div className="big">{naira(e.total)}</div><p className="sub">{e.kind === 'FULL' ? 'Full class' : `${e.skills.length} skill${e.skills.length > 1 ? 's' : ''}`}</p></div>

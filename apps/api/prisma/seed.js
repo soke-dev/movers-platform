@@ -31,7 +31,7 @@ async function main() {
     const cohort = await prisma.cohort.create({
       data: {
         name: 'Full-Stack Tech Class',
-        code: 'Cohort 04',
+        code: 'Cohort 01',
         startDate: new Date(2026, 9, 26),
         demoDate: new Date(2026, 11, 19),
         weeks: 8,

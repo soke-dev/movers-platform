@@ -169,3 +169,17 @@
 .apply-faq dl > div { padding: 10px 0; border-top: 1px solid var(--rule) }
 .apply-faq dt { font: 600 14px var(--f-body) }
 .apply-faq dd { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5 }
+
+/* My classes */
+.cls + .cls { margin-top: 16px }
+.cls-h { display: flex; align-items: center; gap: 14px }
+.cls-h > div { flex: 1; min-width: 0 }
+.cls-h h2 { font: 800 20px/1.2 var(--f-display); letter-spacing: -.02em; margin-top: 2px }
+.cls-no { width: 44px; height: 44px; border-radius: 12px; background: var(--violet-soft); color: var(--violet); display: grid; place-items: center; font: 700 15px var(--f-mono); flex: none }
+.cls-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 24px; margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--rule) }
+.cls-facts dt { font-size: 12px; color: var(--ink-3) }
+.cls-facts dd { margin: 2px 0 0; font-size: 14px; font-weight: 600 }
+.cls-skills { display: flex; flex-wrap: wrap; gap: 8px }
+.cls-skills span { display: flex; flex-direction: column; padding: 8px 12px; border-radius: 10px; background: var(--mist); font-size: 13px }
+.cls-skills small { color: var(--ink-3) }
+@media (max-width: 560px) { .cls-h { flex-wrap: wrap } }
