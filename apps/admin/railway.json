@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm ci && npm run build -w apps/admin",
+    "watchPatterns": ["apps/admin/**", "packages/ui/**"]
+  },
+  "deploy": {
+    "startCommand": "npm run start -w apps/admin",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

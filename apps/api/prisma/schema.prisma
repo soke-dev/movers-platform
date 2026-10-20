@@ -1,0 +1,427 @@
+// One database for Movers Learn and Movers Space. A user signs up once
+// (their "Movers ID") and can be a student, a space member, or both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  STAFF
+  ADMIN
+}
+
+enum EnrollKind {
+  FULL
+  SINGLE
+}
+
+enum PayPlan {
+  FULL
+  TWO
+}
+
+enum PayStatus {
+  UNPAID
+  PENDING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
+enum PayMethod {
+  ONLINE
+  WHATSAPP
+  OFFICE
+}
+
+enum PayPurpose {
+  ENROLLMENT
+  BOOKING
+  PASS
+  OTHER
+}
+
+enum AttendStatus {
+  PRESENT
+  LATE
+  ABSENT
+}
+
+enum Audience {
+  COHORT
+  ALL_STUDENTS
+  SPACE
+  EVERYONE
+}
+
+enum BookingStatus {
+  UNPAID
+  HELD
+  CONFIRMED
+  CANCELLED
+}
+
+enum RoomKind {
+  MEETING
+  HALL
+}
+
+enum PassKind {
+  DAY
+  BUNDLE
+  MONTHLY
+  DEDICATED
+}
+
+enum PassStatus {
+  UNPAID
+  HELD
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  /// Empty for people who only sign in with Google or Apple.
+  passwordHash    String?
+  /// Set when they click the link in the confirmation email (or sign in with Google/Apple).
+  emailVerifiedAt DateTime?
+  googleId        String?   @unique
+  appleId         String?   @unique
+  role            Role      @default(USER)
+  referralCode    String    @unique
+  referredById    String?
+  createdAt       DateTime  @default(now())
+
+  tokens      AuthToken[]
+  enrollments Enrollment[]
+  payments    Payment[]    @relation("payer")
+  submissions Submission[]
+  attempts    QuizAttempt[]
+  attendance  Attendance[]
+  passes      Pass[]
+  visits      Visit[]
+  bookings    Booking[]
+}
+
+enum TokenKind {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+/// One-time links sent by email. Only a hash of the token is stored.
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  kind      TokenKind
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+}
+
+/// A run of the Full-Stack class. The one marked isCurrent is shown on the website.
+model Cohort {
+  id               String   @id @default(cuid())
+  name             String
+  code             String
+  startDate        DateTime
+  demoDate         DateTime
+  weeks            Int      @default(8)
+  /// Class days, 1 = Monday ... 6 = Saturday
+  days             Int[]
+  scheduleText     String
+  saturdayNote     String   @default("")
+  location         String
+  seats            Int
+  fullPrice        Int
+  skillPrice       Int
+  allowTwoPayments Boolean  @default(true)
+  supportNote      String   @default("")
+  mentorshipNote   String   @default("")
+  laptopNote       String   @default("")
+  isCurrent        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  enrollments   Enrollment[]
+  sessions      ClassSession[]
+  assignments   Assignment[]
+  quizzes       Quiz[]
+  announcements Announcement[]
+}
+
+/// The skills on the website. Weeks refer to the week of the class they are taught in.
+model Skill {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  weekStart   Int
+  weekEnd     Int
+  group       String
+  icon        String   @default("bulb")
+  color       String   @default("violet")
+  topics      String[]
+  visible     Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  enrollments EnrollmentSkill[]
+}
+
+model Enrollment {
+  id        String     @id @default(cuid())
+  userId    String
+  cohortId  String
+  kind      EnrollKind
+  plan      PayPlan    @default(FULL)
+  total     Int
+  createdAt DateTime   @default(now())
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohort   Cohort            @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  skills   EnrollmentSkill[]
+  payments Payment[]
+
+  @@unique([userId, cohortId])
+}
+
+model EnrollmentSkill {
+  enrollmentId String
+  skillId      String
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  skill      Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([enrollmentId, skillId])
+}
+
+model Payment {
+  id            String     @id @default(cuid())
+  reference     String     @unique
+  userId        String
+  amount        Int
+  purpose       PayPurpose
+  description   String
+  method        PayMethod?
+  status        PayStatus  @default(UNPAID)
+  /// Money Moves checkout id of the latest online attempt (a payment can be retried).
+  gatewayRef    String?    @unique
+  dueDate       DateTime?
+  enrollmentId  String?
+  bookingId     String?
+  passId        String?
+  paidAt        DateTime?
+  confirmedById String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  user       User        @relation("payer", fields: [userId], references: [id], onDelete: Cascade)
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  pass       Pass?       @relation(fields: [passId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([userId])
+}
+
+model ClassSession {
+  id       String   @id @default(cuid())
+  cohortId String
+  date     DateTime
+  topic    String   @default("")
+
+  cohort     Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  attendance Attendance[]
+
+  @@unique([cohortId, date])
+}
+
+model Attendance {
+  sessionId   String
+  userId      String
+  status      AttendStatus
+  checkedInAt DateTime?
+
+  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, userId])
+}
+
+model Assignment {
+  id           String   @id @default(cuid())
+  cohortId     String
+  title        String
+  skillName    String   @default("")
+  instructions String   @default("")
+  dueAt        DateTime
+  maxScore     Int      @default(100)
+  createdAt    DateTime @default(now())
+
+  cohort      Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+}
+
+model Submission {
+  id               String   @id @default(cuid())
+  assignmentId     String
+  userId           String
+  repoUrl          String
+  liveUrl          String   @default("")
+  note             String   @default("")
+  score            Int?
+  changesRequested Boolean  @default(false)
+  feedback         String   @default("")
+  submittedAt      DateTime @default(now())
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, userId])
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  cohortId  String
+  title     String
+  closesAt  DateTime
+  minutes   Int      @default(10)
+  createdAt DateTime @default(now())
+
+  cohort    Cohort         @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+}
+
+model QuizQuestion {
+  id      String   @id @default(cuid())
+  quizId  String
+  text    String
+  options String[]
+  answer  Int
+  order   Int
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  userId    String
+  answers   Int[]
+  score     Int
+  total     Int
+  createdAt DateTime @default(now())
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, userId])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  audience  Audience
+  cohortId  String?
+  createdAt DateTime @default(now())
+
+  cohort Cohort? @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  name       String
+  kind       RoomKind
+  capacity   Int
+  hourlyRate Int      @default(0)
+
+  bookings Booking[]
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  roomId    String
+  start     DateTime
+  end       DateTime
+  people    Int
+  layout    String        @default("")
+  details   Json?
+  subtotal  Int
+  vat       Int
+  total     Int
+  status    BookingStatus @default(UNPAID)
+  createdAt DateTime      @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room     Room      @relation(fields: [roomId], references: [id])
+  payments Payment[]
+
+  @@index([roomId, start])
+}
+
+/// Workspace passes. A pass covers `people` people; bundles hold daysTotal days to use.
+model Pass {
+  id         String     @id @default(cuid())
+  userId     String
+  kind       PassKind
+  people     Int        @default(1)
+  daysTotal  Int?
+  validFrom  DateTime
+  validUntil DateTime
+  price      Int
+  status     PassStatus @default(UNPAID)
+  createdAt  DateTime   @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visits   Visit[]
+  payments Payment[]
+}
+
+model Visit {
+  id           String    @id @default(cuid())
+  userId       String
+  passId       String?
+  desk         Int
+  guestName    String    @default("")
+  checkedInAt  DateTime  @default(now())
+  checkedOutAt DateTime?
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pass Pass? @relation(fields: [passId], references: [id], onDelete: SetNull)
+
+  @@index([checkedInAt])
+}
+
+/// Prices and options for Movers Space. A single row with id 1.
+model SpaceSettings {
+  id              Int   @id @default(1)
+  desks           Int   @default(24)
+  dayPass         Int
+  bundle10        Int
+  monthly         Int
+  dedicated       Int
+  vatPercent      Float @default(7.5)
+  studentDiscount Int   @default(20)
+  teaPerPerson    Int   @default(500)
+  hallPackages    Json
+  addons          Json
+  layouts         Json
+}
