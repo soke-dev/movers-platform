@@ -51,13 +51,11 @@ Push this `movers-platform` folder to a GitHub repository (private is fine).
 1. New Project → **Deploy PostgreSQL**. This is your database.
 2. In the same project, add **four services** from your GitHub repo (New → GitHub Repo, pick the repo each time).
    Name them `api`, `learn`, `space`, `admin`.
-3. For each service, open **Settings** and set:
+3. For each service, open **Settings** and set (replace `X` with `api`, `learn`, `space` or `admin`):
    - **Root directory:** leave empty (the repo root). The apps share code, so they build from the top.
-   - **Config file path** (Settings → Config-as-code):
-     - api → `apps/api/railway.json`
-     - learn → `apps/learn/railway.json`
-     - space → `apps/space/railway.json`
-     - admin → `apps/admin/railway.json`
+   - **Build command:** `npm run build -w apps/X`
+   - **Start command:** `npm run start -w apps/X`
+   - api only: **Healthcheck path** `/health`
 
 ### 3. Variables
 **api** service:
@@ -104,16 +102,11 @@ Railway shows a CNAME record for each; add those at your domain registrar. HTTPS
 All four must be on `moverstech.xyz` so one login works across them.
 
 ### 5. First run
-The API creates the tables every time it starts. Once it's running, load the starting data once:
-open the **api** service → the deploy's **⋯ → Shell** (or `railway run`) and run
+Every time the API starts it updates the tables and fills in any missing starting data (the class, 12 skills,
+Space prices and rooms, and the admin from `ADMIN_EMAIL`). Nothing you've edited in admin is overwritten.
 
-```bash
-npm run seed -w apps/api
-```
-
-This emails `ADMIN_EMAIL` a link to choose a password (it works for 24 hours, and also confirms the email).
-After that, log in at admin.moverstech.xyz. Running the seed again is safe: it only adds what's missing, and
-re-sends the link if the password still isn't set.
+The first start after `RESEND_API_KEY` is set emails `ADMIN_EMAIL` a link to choose a password (it works for 24 hours, and also confirms the email).
+After that, log in at admin.moverstech.xyz. If the link expires, restart the api service and a new one is sent.
 
 ### 6. Money Moves
 1. Money Moves dashboard → **Developers → API keys**: copy the secret key into `MONEYMOVES_SECRET_KEY`.

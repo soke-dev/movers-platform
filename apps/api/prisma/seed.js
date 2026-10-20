@@ -1,5 +1,6 @@
 // Sets up the first class, the 12 skills, Movers Space prices and rooms,
-// and an admin login. Safe to run more than once: it only fills what is missing.
+// and an admin login. Runs on every API start: it only fills what is missing.
+// `node prisma/seed.js --resend` emails the admin a fresh link even if one is still valid.
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
 
@@ -115,16 +116,24 @@ async function main() {
     } else if (admin.role !== 'ADMIN') {
       admin = await prisma.user.update({ where: { email }, data: { role: 'ADMIN' } });
     }
+    // Don't email again on every restart while an earlier link still works.
+    const waiting = await prisma.authToken.findFirst({ where: { userId: admin.id, usedAt: null, expiresAt: { gt: new Date() } } });
     if (admin.emailVerifiedAt && admin.passwordHash) {
       console.log(`Admin ${email} is ready. Log in at ${env.adminUrl}`);
-    } else if (!admin.passwordHash) {
-      const token = await issueToken(admin.id, 'RESET_PASSWORD', 24 * 3600e3);
-      const sent = await sendSetPasswordEmail(admin, `${env.adminUrl}/reset-password?token=${token}`);
-      console.log(sent ? `Sent a “set your password” email to ${email}.` : `Could not send email to ${email}. Check RESEND_API_KEY and EMAIL_FROM.`);
+    } else if (waiting && !process.argv.includes('--resend')) {
+      console.log(`Admin ${email} has already been emailed a link. Run the seed with --resend to send a new one.`);
     } else {
-      const token = await issueToken(admin.id, 'VERIFY_EMAIL');
-      const sent = await sendVerifyEmail(admin, `${env.adminUrl}/verify-email?token=${token}&next=%2F`);
-      console.log(sent ? `Sent a confirmation email to ${email}.` : `Could not send email to ${email}. Check RESEND_API_KEY and EMAIL_FROM.`);
+      const kind = admin.passwordHash ? 'VERIFY_EMAIL' : 'RESET_PASSWORD';
+      const token = await issueToken(admin.id, kind, 24 * 3600e3);
+      const sent = kind === 'RESET_PASSWORD'
+        ? await sendSetPasswordEmail(admin, `${env.adminUrl}/reset-password?token=${token}`)
+        : await sendVerifyEmail(admin, `${env.adminUrl}/verify-email?token=${token}&next=%2F`);
+      if (sent) console.log(`Emailed ${email} a link to ${kind === 'RESET_PASSWORD' ? 'set their password' : 'confirm their email'}.`);
+      else {
+        // Try again on the next start.
+        await prisma.authToken.deleteMany({ where: { userId: admin.id, usedAt: null } });
+        console.log(`Could not email ${email}. Check RESEND_API_KEY and EMAIL_FROM.`);
+      }
     }
   } else {
     console.log('Set ADMIN_EMAIL to create the first admin login.');
