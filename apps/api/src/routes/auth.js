@@ -17,11 +17,24 @@ const referralFor = (name) => makeRef(name.split(' ')[0].toUpperCase().replace(/
 
 const sendVerification = async (user) => sendVerifyEmail(user, await issueCode(user.id, 'VERIFY_EMAIL'));
 
+/** Nigerian numbers only, stored as +234 and 10 digits. Accepts 0803…, 803…, +234803… */
+const NigeriaPhone = z.string().trim().transform((p, ctx) => {
+  let d = p.replace(/\D/g, '');
+  if (d.startsWith('234')) d = d.slice(3);
+  if (d.startsWith('0')) d = d.slice(1);
+  if (!/^[789]\d{9}$/.test(d)) {
+    ctx.addIssue({ code: 'custom', message: 'Enter your 10-digit phone number, e.g. 803 123 4567' });
+    return z.NEVER;
+  }
+  return `+234${d}`;
+});
+const Password = z.string().min(6, 'Use at least 6 characters');
+
 const RegisterBody = z.object({
   name: z.string().trim().min(2, 'Enter your full name'),
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
-  phone: z.string().trim().refine((p) => p.replace(/\D/g, '').length >= 10, 'Enter an 11-digit phone number'),
-  password: z.string().min(8, 'Use at least 8 characters'),
+  phone: NigeriaPhone,
+  password: Password,
   referral: z.string().trim().optional()
 });
 
@@ -86,7 +99,7 @@ r.post('/forgot', limiter, ah(async (req, res) => {
   res.json({ ok: true });
 }));
 
-const ResetBody = z.object({ email: Email, code: Code, password: z.string().min(8, 'Use at least 8 characters') });
+const ResetBody = z.object({ email: Email, code: Code, password: Password });
 
 /** Also how a new admin sets their first password. The code proves they own the email, so it confirms it. */
 r.post('/reset', limiter, ah(async (req, res) => {
@@ -107,7 +120,7 @@ r.post('/logout', (_req, res) => {
 
 r.get('/me', (req, res) => res.json({ user: publicUser(req.user) || null }));
 
-const ProfileBody = z.object({ name: z.string().trim().min(2).optional(), phone: z.string().trim().min(10).optional() });
+const ProfileBody = z.object({ name: z.string().trim().min(2).optional(), phone: NigeriaPhone.optional() });
 r.patch('/me', requireAuth, ah(async (req, res) => {
   const data = parse(ProfileBody, req.body);
   const user = await prisma.user.update({ where: { id: req.user.id }, data });

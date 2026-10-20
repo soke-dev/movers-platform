@@ -24,7 +24,7 @@ export function AuthPage({ word, tone = '#120D24', home = '/dashboard', staff = 
       <div className="panel" style={{ width: 'min(480px,100%)', padding: 28 }}>
         <Link className="brand" to="/"><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
         <h1 style={{ font: '900 28px/1.1 var(--f-display)', letterSpacing: '-.03em', marginTop: 24 }}>
-          {mode === 'login' ? (staff ? 'Staff login' : 'Welcome back') : 'Create your Movers account'}
+          {mode === 'login' ? (staff ? 'Staff login' : 'Welcome back') : 'Create your account'}
         </h1>
         {params.get('error') && <p className="errbox" style={{ marginTop: 14 }}>{params.get('error')}</p>}
         {mode === 'login'
@@ -50,7 +50,7 @@ export function AuthModal({ home = '/dashboard' }) {
   }, [user, next, navigate]);
   const close = () => navigate('/', { preventScrollReset: true });
   return (
-    <Modal title={mode === 'login' ? 'Welcome back' : 'Create your Movers account'} onClose={close}>
+    <Modal title={mode === 'login' ? 'Welcome back' : 'Create your account'} onClose={close}>
       {params.get('error') && <p className="errbox" style={{ marginTop: 14 }}>{params.get('error')}</p>}
       {mode === 'login'
         ? <LoginForm next={next} onDone={() => navigate(next, { replace: true })} switchTo={() => setMode('register')} />

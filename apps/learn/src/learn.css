@@ -157,4 +157,4 @@
 .foot-cols a { display: block; padding: 4px 0; font: 600 15px var(--f-body); color: var(--ink); text-decoration: none }
 .foot-cols p { color: var(--ink-2); font-size: 14px; margin-top: 12px; max-width: 24em }
 .foot { padding-block: 22px; font-size: 13px; color: var(--ink-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--rule) }
-.apply-modal h1 { font: 900 clamp(1.5rem, 3vw, 2rem)/1.1 var(--f-display); letter-spacing: -.03em; padding-right: 40px }
+.apply-modal h1 { font: 800 24px/1.2 var(--f-display); letter-spacing: -.02em; padding-right: 40px }

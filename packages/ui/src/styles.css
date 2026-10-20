@@ -102,9 +102,10 @@ button { font: inherit; color: inherit }
 
 /* Modal and toast */
 .modal { position: fixed; inset: 0; z-index: 80; background: rgba(18,13,36,.55); display: grid; place-items: center; padding: 16px }
-.sheet { background: var(--paper); border-radius: 22px; border: 2px solid var(--ink); width: min(540px, 100%); max-height: 100%; overflow: auto; padding: 24px; position: relative }
+.sheet { background: var(--paper); border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 30px 80px -20px rgba(18,13,36,.4); width: min(540px, 100%); max-height: 100%; overflow: auto; padding: 24px; position: relative }
 .sheet.wide { width: min(740px, 100%) }
-.sheet h3 { font: 900 24px/1.1 var(--f-display); letter-spacing: -.025em; padding-right: 40px }
+.sheet:focus, .sheet:focus-visible { outline: none }
+.sheet h3 { font: 800 22px/1.2 var(--f-display); letter-spacing: -.02em; padding-right: 40px }
 .sheet .x { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; border: 0; background: var(--mist); cursor: pointer; display: grid; place-items: center; font-size: 18px }
 @media (max-width: 560px) {
   .modal { place-items: end stretch; padding: 24px 0 0 }
@@ -391,3 +392,35 @@ td.amt, td.tm { font-family: var(--f-mono); font-variant-numeric: tabular-nums; 
 
 /* Door scanner camera */
 .scanner { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; background: #120D24 }
+
+/* Log in and sign up */
+.authf { display: flex; flex-direction: column; gap: 14px; margin-top: 14px }
+.authf-lead { font-size: 14px; color: var(--ink-2) }
+.authf-google { display: flex; align-items: center; justify-content: center; gap: 10px; height: 46px; border: 1.5px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink); font: 600 15px var(--f-body); text-decoration: none; transition: border-color .15s ease, background-color .15s ease }
+.authf-google:hover { border-color: var(--ink-3); background: var(--mist) }
+.authf-or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 13px }
+.authf-or::before, .authf-or::after { content: ""; flex: 1; height: 1px; background: var(--line) }
+.authf-field { display: flex; flex-direction: column; gap: 6px }
+.authf-label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px }
+.authf-label label { font: 600 13px var(--f-body); color: var(--ink) }
+.authf input { font: 500 16px var(--f-body); height: 46px; padding: 0 13px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); width: 100%; min-width: 0 }
+.authf input::placeholder { color: #B4B0C4 }
+.authf input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(18,13,36,.08) }
+.authf input:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px var(--paper) inset; -webkit-text-fill-color: var(--ink) }
+.authf-pw { position: relative }
+.authf-pw input { padding-right: 62px }
+.authf-pw button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none; cursor: pointer; font: 600 13px var(--f-body); color: var(--ink-3); padding: 8px }
+.authf-pw button:hover { color: var(--ink) }
+.authf-phone { display: flex; align-items: stretch; border: 1.5px solid var(--line); border-radius: 11px; background: var(--paper); overflow: hidden }
+.authf-phone:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(18,13,36,.08) }
+.authf-phone .cc { display: flex; align-items: center; gap: 8px; padding: 0 12px; background: var(--mist); border-right: 1.5px solid var(--line); font: 600 15px var(--f-body); color: var(--ink) }
+.authf-phone .cc svg { border-radius: 2px; box-shadow: 0 0 0 1px var(--line) }
+.authf .authf-phone input { border: 0; border-radius: 0; box-shadow: none; letter-spacing: .02em }
+.authf .authf-code { font: 600 24px var(--f-mono); letter-spacing: .45em; text-align: center; height: 56px }
+.authf-go { height: 48px; margin-top: 4px }
+.authf-link { border: 0; background: none; padding: 0; cursor: pointer; font: 600 13px var(--f-body); color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px }
+.authf-link:hover { text-decoration-color: var(--ink) }
+.authf-link:disabled { color: var(--ink-3); cursor: default }
+.authf-switch { text-align: center; font-size: 13px; color: var(--ink-2) }
+.authf-fine { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: -6px }
+.authf-err { font-size: 13px; font-weight: 600; color: var(--due); background: var(--pink-soft); border-radius: 10px; padding: 10px 12px }

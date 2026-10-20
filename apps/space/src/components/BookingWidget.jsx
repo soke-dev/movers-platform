@@ -160,7 +160,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
       </aside>
 
       {auth && (
-        <Modal title={auth === 'register' ? 'Create your Movers account' : 'Log in to book'} onClose={() => setAuth(null)}>
+        <Modal title={auth === 'register' ? 'Create your account' : 'Log in to book'} onClose={() => setAuth(null)}>
           {auth === 'register'
             ? <RegisterForm cta="Continue" next="/dashboard/book" switchTo={() => setAuth('login')} onDone={() => setAuth(null)} />
             : <LoginForm next="/dashboard/book" switchTo={() => setAuth('register')} onDone={() => setAuth(null)} />}

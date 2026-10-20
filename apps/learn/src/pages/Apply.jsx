@@ -17,7 +17,8 @@ export default function Apply() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const close = () => navigate('/', { preventScrollReset: true });
-  const shell = (children) => <Modal wide onClose={close} labelledBy="applyTitle"><div className="apply-modal">{children}</div></Modal>;
+  // Narrow while they log in or sign up, wide for choosing skills and paying.
+  const shell = (children, wide = true) => <Modal wide={wide} onClose={close} labelledBy="applyTitle"><div className="apply-modal">{children}</div></Modal>;
 
   if (loading || user === undefined) return shell(<Loading />);
   if (error) return shell(<ErrorBox error={error} />);
@@ -59,7 +60,7 @@ export default function Apply() {
 
         {step === 1 && (
           <>
-            <h1 id="applyTitle">{authMode === 'register' ? 'Create your Movers account' : 'Log in to continue'}</h1>
+            <h1 id="applyTitle">{authMode === 'register' ? 'Create your account' : 'Log in to continue'}</h1>
             {authMode === 'register'
               ? <RegisterForm cta="Continue" switchTo={() => setAuthMode('login')} />
               : <LoginForm switchTo={() => setAuthMode('register')} />}
@@ -130,6 +131,7 @@ export default function Apply() {
           </>
         )}
       </div>
-    </>
+    </>,
+    step !== 1
   );
 }
