@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Icon, Modal, QR, Receipt, PayChip, Table, Empty, naira, fmtDate, METHOD, ADDRESS, PHONE_DISPLAY } from '@movers/ui';
 import { useLearn } from './Dashboard.jsx';
-import { PayModal } from './modals.jsx';
+import { PayModal, CancelPayModal } from './modals.jsx';
 import { NotEnrolled } from './Course.jsx';
+import Apply from '../Apply.jsx';
 
 export default function Payments() {
   const { data, d, reload } = useLearn();
@@ -14,7 +15,9 @@ export default function Payments() {
   const owed = d.owing.reduce((s, p) => s + p.amount, 0);
   return (
     <div className="pg">
-      <div className="pg-h"><div><p className="eyebrow">{data.cohort.code} · {e.kind === 'FULL' ? (e.plan === 'TWO' ? 'Two payments' : 'Paid in one go') : 'Single skills'}</p><h1>Payments</h1><p className="desc">Pay online through Money Moves, on WhatsApp, or in person at the office. Every payment gets a receipt here.</p></div></div>
+      <div className="pg-h"><div><p className="eyebrow">{data.cohort.code} · {e.kind === 'FULL' ? (e.plan === 'TWO' ? 'Two payments' : 'Paid in one go') : 'Single skills'}</p><h1>Payments</h1><p className="desc">Pay online through Money Moves, on WhatsApp, or in person at the office. Every payment gets a receipt here.</p></div>
+        {!d.secured && <button className="btn line" onClick={() => setModal({ plan: true })}>Change plan</button>}
+      </div>
       <div className="stats">
         <div className="card"><span className="k">Total</span><div className="big">{naira(e.total)}</div><p className="sub">{e.kind === 'FULL' ? 'Full class' : `${e.skills.length} skill${e.skills.length > 1 ? 's' : ''}`}</p></div>
         <div className="card"><span className="k">Paid</span><div className="big" style={{ color: 'var(--ok)' }}>{naira(paid)}</div><p className="sub">{d.paid.length} payment{d.paid.length === 1 ? '' : 's'}</p></div>
@@ -35,8 +38,8 @@ export default function Payments() {
                 <td>
                   {p.status === 'PAID' && <button className="linkbtn" onClick={() => setModal({ receipt: p })}>Receipt</button>}
                   {p.status === 'UNPAID' && <button className="btn pink sm" onClick={() => setModal({ pay: p })}>Pay now</button>}
-                  {p.status === 'PENDING' && p.method === 'OFFICE' && <button className="linkbtn" onClick={() => setModal({ code: p })}>Show code</button>}
-                  {p.status === 'PENDING' && p.method === 'WHATSAPP' && <button className="linkbtn" onClick={() => setModal({ pay: p })}>Change method</button>}
+                  {p.status === 'PENDING' && p.method === 'OFFICE' && <button className="linkbtn" onClick={() => setModal({ code: p })}>Show code</button>}{' '}
+                  {p.status === 'PENDING' && <button className="linkbtn" onClick={() => setModal({ cancel: p })}>Cancel</button>}
                 </td>
               </tr>
             ))}
@@ -52,6 +55,8 @@ export default function Payments() {
         </ul>
       </div>
       {modal?.pay && <PayModal payment={modal.pay} onClose={() => setModal(null)} onDone={reload} />}
+      {modal?.cancel && <CancelPayModal payment={modal.cancel} onClose={() => setModal(null)} onDone={reload} />}
+      {modal?.plan && <Apply current={e} onClose={() => setModal(null)} onSaved={reload} />}
       {modal?.receipt && <Modal title="Receipt" onClose={() => setModal(null)}><Receipt p={modal.receipt} /></Modal>}
       {modal?.code && (
         <Modal title="Payment code" onClose={() => setModal(null)}>

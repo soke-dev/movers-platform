@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, Empty, PayChip, useAuth, naira, fmtDay, fmtTime, dueText, dayNum, monShort, SPACE_URL } from '@movers/ui';
 import { useLearn } from './Dashboard.jsx';
-import { PayModal, QuizModal, SubmitModal } from './modals.jsx';
+import { PayModal, QuizModal, SubmitModal, CancelPayModal } from './modals.jsx';
 
 export default function Overview() {
   const { data, d, reload } = useLearn();
@@ -32,7 +32,9 @@ export default function Overview() {
       key: p.id, bg: p.status === 'PENDING' ? 'var(--amber-soft)' : 'var(--pink-soft)', color: p.status === 'PENDING' ? 'var(--wait)' : 'var(--due)', icon: 'wallet',
       t: p.status === 'PENDING' ? `Payment being confirmed: ${naira(p.amount)}` : `Pending payment: ${naira(p.amount)}`,
       d: p.status === 'PENDING' ? `${p.method === 'OFFICE' ? `Pay at the office with code ${p.reference}` : 'Sent on WhatsApp. Our team usually confirms within 1 working hour.'}` : `${p.description}${p.dueDate ? ` · due ${fmtDay(p.dueDate)}` : ''}`,
-      act: p.status === 'PENDING' ? <PayChip status="PENDING" /> : <button className="btn pink sm" onClick={() => setModal({ pay: p })}>Pay now</button>
+      act: p.status === 'PENDING'
+        ? <span className="row" style={{ gap: 10 }}><PayChip status="PENDING" /><button className="linkbtn" onClick={() => setModal({ cancel: p })}>Cancel</button></span>
+        : <button className="btn pink sm" onClick={() => setModal({ pay: p })}>Pay now</button>
     })),
     ...d.openQuizzes.map((q) => ({
       key: q.id, bg: 'var(--violet-soft)', color: 'var(--violet)', icon: 'quiz', t: `Pending quiz: ${q.title}`,
@@ -84,7 +86,6 @@ export default function Overview() {
               <p className="sub">{fmtDay(d.nextClass.date)} · {c.scheduleText}<br />{c.location}</p>
             </>
           ) : <h3>No more classes. See you at Demo Day!</h3>}
-          <p className="sub" style={{ fontSize: 13 }}>Bring your laptop and its charger.</p>
         </div>
         <div className="card">
           <span className="k">Course progress</span>
@@ -121,6 +122,7 @@ export default function Overview() {
         <News items={data.announcements} />
       </div>
       {modal?.pay && <PayModal payment={modal.pay} onClose={() => setModal(null)} onDone={reload} />}
+      {modal?.cancel && <CancelPayModal payment={modal.cancel} onClose={() => setModal(null)} onDone={reload} />}
       {modal?.quiz && <QuizModal quizId={modal.quiz} onClose={() => setModal(null)} onDone={reload} />}
       {modal?.submit && <SubmitModal a={modal.submit} onClose={() => setModal(null)} onDone={reload} />}
     </div>

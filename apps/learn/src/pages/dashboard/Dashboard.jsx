@@ -9,6 +9,7 @@ export default function Dashboard() {
   const d = data ? derive(data) : null;
   const nav = [
     { to: '/dashboard', end: true, label: 'Overview', icon: 'home' },
+    { to: '/dashboard/classes', label: 'My classes', icon: 'layers' },
     { to: '/dashboard/course', label: 'My course', icon: 'book' },
     { to: '/dashboard/tasks', label: 'Quizzes & tasks', icon: 'quiz', badge: d?.todo.length ? `${d.todo.length} to do` : null },
     { to: '/dashboard/attendance', label: 'Attendance', icon: 'calendar' },

@@ -145,3 +145,31 @@ export function QuizModal({ quizId, onClose, onDone }) {
     </Modal>
   );
 }
+
+/** Cancels a WhatsApp or office payment that hasn't been confirmed, so they can pay another way. */
+export function CancelPayModal({ payment, onClose, onDone }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const go = async () => {
+    setBusy(true);
+    setErr('');
+    try {
+      await api(`/payments/${payment.id}/cancel`, { method: 'POST' });
+      toast('Cancelled. You can pay another way now.');
+      onDone?.();
+      onClose();
+    } catch (e) {
+      setErr(e.message);
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal title="Cancel this payment?" onClose={onClose}>
+      <p className="small" style={{ marginTop: 8 }}>{payment.description} · {payment.reference}</p>
+      <p style={{ marginTop: 10, color: 'var(--ink-2)' }}>It goes back to “not paid” so you can choose another way to pay, or change your plan. If you’ve already sent the money, don’t cancel: call or WhatsApp us and we’ll confirm it.</p>
+      {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
+      <div className="sheet-foot"><button className="btn ghost" onClick={onClose}>Keep it</button><button className="btn ink" disabled={busy} onClick={go}>{busy ? 'Cancelling…' : 'Cancel payment'}</button></div>
+    </Modal>
+  );
+}

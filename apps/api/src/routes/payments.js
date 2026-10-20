@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
-import { ah, parse, notFound } from '../lib/util.js';
+import { ah, parse, bad, notFound } from '../lib/util.js';
 import { requireAuth } from '../lib/auth.js';
-import { startPayment, markPaid, settleOnline, paymentView } from '../lib/payments.js';
+import { startPayment, markPaid, markUnpaid, settleOnline, paymentView } from '../lib/payments.js';
 import { validSignature } from '../lib/moneymoves.js';
 import { refundFromWebhook } from '../lib/refunds.js';
 
@@ -19,6 +19,14 @@ r.post('/:id/pay', requireAuth, ah(async (req, res) => {
   const payment = await prisma.payment.findUnique({ where: { id: req.params.id } });
   if (!payment || payment.userId !== req.user.id) throw notFound('Payment');
   res.json(await startPayment(payment, req.user, body.method, body.returnUrl));
+}));
+
+/** "Cancel" on a WhatsApp or office payment that staff haven't confirmed yet: back to unpaid, to pay another way. */
+r.post('/:id/cancel', requireAuth, ah(async (req, res) => {
+  const payment = await prisma.payment.findUnique({ where: { id: req.params.id } });
+  if (!payment || payment.userId !== req.user.id) throw notFound('Payment');
+  if (payment.status !== 'PENDING') throw bad('Only a payment waiting to be confirmed can be cancelled.');
+  res.json({ payment: paymentView(await markUnpaid(payment.id)) });
 }));
 
 /** The payment page calls this when Money Moves sends the customer back. */

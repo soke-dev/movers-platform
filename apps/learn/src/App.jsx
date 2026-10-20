@@ -4,6 +4,7 @@ import Landing from './pages/Landing.jsx';
 import Apply from './pages/Apply.jsx';
 import Dashboard from './pages/dashboard/Dashboard.jsx';
 import Overview from './pages/dashboard/Overview.jsx';
+import Classes from './pages/dashboard/Classes.jsx';
 import Course from './pages/dashboard/Course.jsx';
 import Tasks from './pages/dashboard/Tasks.jsx';
 import Attendance from './pages/dashboard/Attendance.jsx';
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/payments/callback" element={<RequireAuth><PaymentReturn /></RequireAuth>} />
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>}>
         <Route index element={<Overview />} />
+        <Route path="classes" element={<Classes />} />
         <Route path="course" element={<Course />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="attendance" element={<Attendance />} />

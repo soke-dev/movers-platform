@@ -25,10 +25,11 @@ r.post('/enroll', ah(async (req, res) => {
     include: { payments: true }
   });
   if (existing) {
-    if (existing.payments.some((p) => p.status === 'PAID' || p.status === 'PENDING')) {
-      throw new HttpError(409, `You’re already registered for ${cohort.code}. Open your dashboard to see it.`);
+    if (existing.payments.some((p) => p.status === 'PAID')) {
+      throw new HttpError(409, `You’ve already paid for ${cohort.code}. Call or WhatsApp us to change your plan.`);
     }
-    // Nothing paid yet: let them change their choice.
+    // Nothing paid yet: they can change their plan. The old payments are cancelled, not left owing.
+    await prisma.payment.updateMany({ where: { enrollmentId: existing.id, status: { in: ['UNPAID', 'PENDING'] } }, data: { status: 'CANCELLED' } });
     await prisma.enrollment.delete({ where: { id: existing.id } });
   }
 
@@ -120,6 +121,35 @@ r.get('/me', ah(async (req, res) => {
       .map((a) => ({ id: a.id, title: a.title, skillName: a.skillName, instructions: a.instructions, dueAt: a.dueAt, maxScore: a.maxScore, submission: a.submissions[0] || null })),
     quizzes: quizzes.map((q) => ({ id: q.id, title: q.title, closesAt: q.closesAt, minutes: q.minutes, questionCount: q._count.questions, attempt: q.attempts[0] ? { score: q.attempts[0].score, total: q.attempts[0].total } : null })),
     announcements
+  });
+}));
+
+/** Upcoming until the first class, running until Demo Day, then completed. */
+const stageOf = (c, now = new Date()) => (now < c.startDate ? 'UPCOMING' : now <= addDays(c.demoDate, 1) ? 'RUNNING' : 'COMPLETED');
+
+/** "My classes": every class they've joined, newest first, and the class open for registration if they're not in it. */
+r.get('/classes', ah(async (req, res) => {
+  const [enrollments, open] = await Promise.all([
+    prisma.enrollment.findMany({
+      where: { userId: req.user.id },
+      include: { cohort: true, skills: { include: { skill: true } }, payments: { where: { status: { not: 'CANCELLED' } } } },
+      orderBy: { cohort: { startDate: 'desc' } }
+    }),
+    getCurrentCohort()
+  ]);
+  res.json({
+    classes: enrollments.map((e) => ({
+      id: e.id,
+      cohort: { id: e.cohort.id, name: e.cohort.name, code: e.cohort.code, startDate: e.cohort.startDate, demoDate: e.cohort.demoDate, weeks: e.cohort.weeks, scheduleText: e.cohort.scheduleText, location: e.cohort.location },
+      stage: stageOf(e.cohort),
+      kind: e.kind,
+      plan: e.plan,
+      skills: e.skills.map((s) => s.skill.name),
+      total: e.total,
+      paid: e.payments.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0),
+      secured: e.payments.some((p) => p.status === 'PAID')
+    })),
+    open: open && !enrollments.some((e) => e.cohortId === open.id) ? { ...cohortView(open, await seatsTaken(open.id)), stage: stageOf(open) } : null
   });
 }));
 

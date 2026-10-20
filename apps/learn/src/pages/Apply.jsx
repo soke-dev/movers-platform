@@ -3,20 +3,25 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, useApi, useAuth, Icon, Modal, LoginForm, RegisterForm, PayFlow, Loading, ErrorBox, naira, fmtDay, weekLabel } from '@movers/ui';
 import { weekSpan, classFaqs } from './Landing.jsx';
 
-/** Sign-up for the class, as a pop-up over the landing page (/apply?kind=full|single&plan=two&skill=…). */
-export default function Apply() {
+/**
+ * Sign-up for the class, as a pop-up over the landing page (/apply?kind=full|single&plan=two&skill=…).
+ * The dashboard also opens it to change the plan: pass `current` (their enrolment), `onClose` and `onSaved`.
+ */
+export default function Apply({ current, onClose, onSaved }) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data, error, loading } = useApi('/public/class');
   const [authMode, setAuthMode] = useState('register');
-  const [kind, setKind] = useState(params.get('kind') === 'single' ? 'SINGLE' : 'FULL');
-  const [plan, setPlan] = useState(params.get('plan') === 'two' ? 'TWO' : 'FULL');
-  const [picked, setPicked] = useState(() => new Set(params.get('skill') ? [params.get('skill')] : []));
+  const [kind, setKind] = useState(current?.kind || (params.get('kind') === 'single' ? 'SINGLE' : 'FULL'));
+  const [plan, setPlan] = useState(current?.plan || (params.get('plan') === 'two' ? 'TWO' : 'FULL'));
+  const [picked, setPicked] = useState(() => new Set(current ? current.skills.map((s) => s.id) : params.get('skill') ? [params.get('skill')] : []));
   const [payment, setPayment] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const close = () => navigate('/', { preventScrollReset: true });
+  const close = onClose || (() => navigate('/', { preventScrollReset: true }));
+  const finish = () => (onClose ? onClose() : navigate('/dashboard'));
+  const pendingNow = current?.payments.some((p) => p.status === 'PENDING');
   // Narrow while they log in or sign up, wide for choosing skills and paying.
   const shell = (children, wide = true) => <Modal wide={wide} onClose={close} labelledBy="applyTitle"><div className="apply-modal">{children}</div></Modal>;
 
@@ -42,7 +47,8 @@ export default function Apply() {
     setBusy(later ? 'later' : 'pay');
     try {
       const r = await api('/learn/enroll', { method: 'POST', body: { kind, plan: two ? 'TWO' : 'FULL', skillIds: [...picked] } });
-      if (later) return navigate('/dashboard');
+      onSaved?.();
+      if (later) return finish();
       setPayment(r.payment);
     } catch (e) {
       setErr(e.message);
@@ -71,8 +77,9 @@ export default function Apply() {
 
         {step === 2 && (
           <>
-            <h1 id="applyTitle">What do you want to learn?</h1>
+            <h1 id="applyTitle">{current ? 'Change your plan' : 'What do you want to learn?'}</h1>
             <p className="small" style={{ marginTop: 6 }}>{c.code} · starts {fmtDay(c.startDate)} · {c.scheduleText} · in person</p>
+            {pendingNow && <p className="warn" style={{ marginTop: 14 }}>Changing your plan cancels the payment we’re waiting to confirm. If you’ve already sent money, call or WhatsApp us first.</p>}
             <details className="apply-faq">
               <summary>Questions about the class<Icon name="plus" /></summary>
               <dl>{classFaqs(c).map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}</dl>
@@ -132,7 +139,7 @@ export default function Apply() {
               hold="We hold your seat for 48 hours."
               laterText={`Your registration is saved. Pay before ${fmtDay(c.startDate)} from your dashboard, on WhatsApp or at the office to secure your seat. Seats go to people who pay first.`}
               finishLabel="Open my dashboard"
-              onFinish={() => navigate('/dashboard')}
+              onFinish={finish}
             />
           </>
         )}
