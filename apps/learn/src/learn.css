@@ -42,8 +42,8 @@
 .cc-price div { background: var(--mist); border-radius: 12px; padding: 12px 14px }
 .cc-price b { display: block; font: 800 21px/1.1 var(--f-display); letter-spacing: -.02em }
 .cc-price span { font-size: 13px; color: var(--ink-3) }
-.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; border-top: 1px solid var(--rule); padding-block: 28px 0 }
-@media (max-width: 860px) { .facts { grid-template-columns: 1fr 1fr; gap: 22px } }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; border-top: 1px solid var(--rule); padding-block: 28px 0 }
+@media (max-width: 860px) { .facts { grid-template-columns: 1fr; gap: 18px } }
 .facts div { display: flex; flex-direction: column; gap: 4px }
 .facts b { font: 800 20px/1.2 var(--f-display); letter-spacing: -.02em }
 .facts span { font-size: 14px; color: var(--ink-2) }

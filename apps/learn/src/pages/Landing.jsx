@@ -231,7 +231,6 @@ function LandingPage() {
       <div className="facts wrap">
         <div><b>{skills.length} skills</b><span>Web, backend, mobile, Web3, AI, design, cloud, security, data and more</span></div>
         <div><b>{c.weeks} weeks, in person</b><span>{c.scheduleText}</span></div>
-        <div><b>Your own laptop</b><span>Bring it to every class. Windows, Mac or Linux all work.</span></div>
         <div><b>{c.mentorshipNote ? 'Mentorship after' : 'Career support'}</b><span>{[c.supportNote, c.mentorshipNote].filter(Boolean).join(', then ') || 'Portfolio, CV and job readiness'}</span></div>
       </div>
       <Skills c={c} skills={skills} sel={sel} setSel={setSel} />
