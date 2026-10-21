@@ -49,6 +49,23 @@ export function RequireAuth({ children, staff = false, loginPath = '/login' }) {
   const loc = useLocation();
   if (user === undefined) return <div className="loading">Loading…</div>;
   if (!user) return <Navigate to={`${loginPath}?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
-  if (staff && user.role === 'USER') return <div className="wrap" style={{ paddingBlock: 60 }}><p className="errbox">This page is for Movers staff. Ask an admin to give your account staff access.</p></div>;
+  if (staff && user.role === 'USER') return <StaffOnly user={user} />;
   return children;
+}
+
+/** Signed in (one login covers every Movers site) but not as staff: say which account, and let them switch. */
+function StaffOnly({ user }) {
+  const { logout } = useAuth();
+  return (
+    <div className="wrap" style={{ paddingBlock: 60, maxWidth: 520 }}>
+      <p className="errbox">This page is for Movers staff.</p>
+      <p style={{ marginTop: 14, color: 'var(--ink-2)' }}>
+        You’re logged in as <b>{user.email}</b>, which doesn’t have staff access. Log out and log in with a staff account,
+        or ask an admin to add you under Team.
+      </p>
+      <div className="row" style={{ marginTop: 16 }}>
+        <button className="btn ink" onClick={logout}>Log out and switch account</button>
+      </div>
+    </div>
+  );
 }
