@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 const SKILLS = [
   ['web-development', 'Web Development', 'HTML, CSS, JavaScript, React, Next.js', 1, 2, 'code', 'code', 'amber', ['HTML and CSS layouts', 'JavaScript you’ll actually use', 'React components and state', 'Next.js pages and deployment']],
   ['backend-development', 'Backend Development', 'Node.js, Python, databases, APIs', 3, 3, 'code', 'db', 'violet', ['Node.js and Express', 'Python basics', 'REST APIs and logins', 'Databases with PostgreSQL']],
-  ['mobile-app-development', 'Mobile App Development', 'Flutter, React Native', 5, 5, 'code', 'phone', 'pink', ['Dart and Flutter', 'React Native for JavaScript devs', 'Publishing to the Play Store']],
+  ['mobile-app-development', 'Mobile App Development', 'Flutter, React Native', 5, 5, 'code', 'phone', 'pink', ['Dart and Flutter', 'React Native for JavaScript devs', 'Publishing to the Play Store and App Store']],
   ['blockchain-web3', 'Blockchain & Web3', 'Smart contracts, Solidity, dApps, Move, wallets', 6, 6, 'web3ai', 'cube', 'lime', ['How blockchains and wallets work', 'Smart contracts in Solidity and Move', 'Building a dApp front end']],
   ['ai-machine-learning', 'AI & Machine Learning', 'Prompt engineering, AI tools, automation', 7, 7, 'web3ai', 'brain', 'violet', ['How AI models work', 'Prompt engineering', 'AI tools for everyday work']],
   ['ui-ux-design', 'UI/UX Design', 'Figma, product design', 1, 1, 'design', 'pen', 'amber', ['Design basics and Figma', 'User research', 'Wireframes to clickable prototypes']],
