@@ -54,7 +54,7 @@ function Header({ cohort }) {
         <Link className="brand" to="/"><Logo /><span>movers <b>learn</b></span></Link>
         <nav className="l-nav" aria-label="Sections">{links.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
         <div className="head-actions">
-          <ThemeToggle />
+          <ThemeToggle variant="switch" />
           {user ? <Link className="btn ghost hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn ghost hide-m" to="/login">Log in</Link>}
           <Link className="btn pink" to="/apply?kind=full">Apply now</Link>
           <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
@@ -63,6 +63,7 @@ function Header({ cohort }) {
           <div className="m-menu" onClick={() => setOpen(false)}>
             {links.map(([h, l]) => <a key={h} href={h}>{l} <Icon name="arrow" /></a>)}
             {user ? <Link to="/dashboard">My dashboard <Icon name="arrow" /></Link> : <Link to="/login">Log in <Icon name="arrow" /></Link>}
+            <div className="m-theme" onClick={(e) => e.stopPropagation()}><span>Dark theme</span><ThemeToggle variant="switch" /></div>
           </div>
         )}
       </header>

@@ -17,14 +17,24 @@ export function setTheme(theme) {
   document.cookie = `${KEY}=${theme}; path=/; max-age=31536000; samesite=lax${shared}`;
 }
 
-/** Sun / moon button. `label` shows the words next to the icon. */
-export function ThemeToggle({ className = 'theme-btn', label = false }) {
+/**
+ * Sun / moon button. `label` shows the words next to the icon. `variant="switch"` is a sliding
+ * switch (used in the phone top bar): a white knob that moves across and swaps sun for moon.
+ */
+export function ThemeToggle({ className = 'theme-btn', label = false, variant }) {
   const [theme, set] = useState(getTheme);
   const next = theme === 'dark' ? 'light' : 'dark';
   const flip = () => {
     setTheme(next);
     set(next);
   };
+  if (variant === 'switch') {
+    return (
+      <button type="button" role="switch" aria-checked={theme === 'dark'} className="theme-switch" onClick={flip} aria-label="Dark theme" title={`Switch to ${next} theme`}>
+        <span className="knob"><Icon name={theme === 'dark' ? 'moon' : 'sun'} /></span>
+      </button>
+    );
+  }
   return (
     <button type="button" className={className} onClick={flip} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`}>
       <Icon name={theme === 'dark' ? 'sun' : 'moon'} />{label && <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>}

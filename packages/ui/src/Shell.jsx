@@ -59,7 +59,7 @@ export function DashShell({ theme = '', word, tone = 'currentColor', nav, tabs, 
         <Link className="brand" to={home}><Logo tone={tone} /><span>movers <b>{word}</b></span></Link>
         <span className="row" style={{ gap: 8 }}>
           {site && <BellButton unread={notes.unread} onClick={openBell} />}
-          <ThemeToggle className="btn ghost sm" />
+          <ThemeToggle variant="switch" />
           <button className="avatar-btn" onClick={() => setAccount(true)} aria-label="Account"><Avatar user={user} /></button>
         </span>
       </header>

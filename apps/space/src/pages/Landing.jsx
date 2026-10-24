@@ -98,7 +98,7 @@ function LandingPage() {
           <Link className="brand" to="/"><Logo tone="#fff" /><span>movers <b>space</b></span></Link>
           <nav className="s-nav">{nav.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
           <div className="s-actions">
-            <ThemeToggle />
+            <ThemeToggle variant="switch" />
             {user ? <Link className="btn wline hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn wline hide-m" to="/login">Log in</Link>}
             <a className="btn amber" href="#book">Book now</a>
             <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
@@ -107,6 +107,7 @@ function LandingPage() {
             <div className="m-menu" onClick={() => setOpen(false)}>
               {nav.map(([h, l]) => <a key={h} href={h}>{l} <Icon name="arrow" /></a>)}
               {user ? <Link to="/dashboard">My dashboard <Icon name="arrow" /></Link> : <Link to="/login">Log in <Icon name="arrow" /></Link>}
+              <div className="m-theme" onClick={(e) => e.stopPropagation()}><span>Dark theme</span><ThemeToggle variant="switch" /></div>
             </div>
           )}
         </header>
