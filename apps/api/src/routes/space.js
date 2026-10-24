@@ -155,6 +155,28 @@ r.post('/bookings/:id/cancel', ah(async (req, res) => {
   res.json({ ok: true, refundDue: paid });
 }));
 
+/**
+ * Cancel an unpaid pass or booking from Payments: the payment and the pass or booking go, freeing the slot.
+ * A booking with part of it paid (a hall deposit) is cancelled from Bookings instead, where the 48-hour rule applies.
+ */
+r.post('/payments/:id/cancel', ah(async (req, res) => {
+  const p = await prisma.payment.findUnique({ where: { id: req.params.id } });
+  if (!p || p.userId !== req.user.id || !['PASS', 'BOOKING'].includes(p.purpose)) throw notFound('Payment');
+  if (p.status !== 'UNPAID') throw bad(p.status === 'PENDING' ? 'This payment is being confirmed. Cancel that first, then cancel the order.' : 'Only an unpaid payment can be cancelled.');
+  if (p.passId) {
+    await prisma.payment.updateMany({ where: { passId: p.passId, status: 'UNPAID' }, data: { status: 'CANCELLED' } });
+    await prisma.pass.update({ where: { id: p.passId }, data: { status: 'CANCELLED' } });
+  } else if (p.bookingId) {
+    const b = await prisma.booking.findUnique({ where: { id: p.bookingId }, include: { payments: true } });
+    if (b.payments.some((x) => x.status === 'PAID' || x.status === 'PENDING')) throw bad('Part of this booking is paid or being confirmed. Cancel the booking from Bookings instead.');
+    await prisma.payment.updateMany({ where: { bookingId: b.id, status: 'UNPAID' }, data: { status: 'CANCELLED' } });
+    await prisma.booking.update({ where: { id: b.id }, data: { status: 'CANCELLED' } });
+  } else {
+    await prisma.payment.update({ where: { id: p.id }, data: { status: 'CANCELLED' } });
+  }
+  res.json({ ok: true });
+}));
+
 r.post('/checkin', ah(async (req, res) => {
   if (isSunday()) throw bad('We’re closed on Sundays. See you on Monday.');
   const open = await prisma.visit.findFirst({ where: { userId: req.user.id, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
