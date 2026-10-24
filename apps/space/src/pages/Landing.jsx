@@ -126,22 +126,22 @@ function LandingPage() {
         </div>
         <ul className="amen wrap">
           <li><Icon name="laptop" style={{ color: 'var(--amber)' }} /><b>Flexible workspaces</b><span>Hot desks by the day, week or month</span></li>
-          <li><Icon name="users" style={{ color: 'var(--orchid)' }} /><b>Meeting room</b><span>Round table for {meeting?.capacity}</span></li>
+          <li><Icon name="users" style={{ color: 'var(--orchid)' }} /><b>Meeting room</b><span>Round table for {meeting?.capacity}+</span></li>
           <li><Icon name="calendar" style={{ color: 'var(--amber)' }} /><b>Event hall</b><span>Meetings, trainings, conferences</span></li>
-          <li><Icon name="wifi" style={{ color: 'var(--orchid)' }} /><b>24-hour access</b><span>Monthly members, Monday to Saturday</span></li>
+          <li><Icon name="clock" style={{ color: 'var(--orchid)' }} /><b>24-hour access</b><span>Monthly members, Monday to Saturday</span></li>
           <li><Icon name="shield" style={{ color: 'var(--amber)' }} /><b>Conducive &amp; private</b><span>Quiet floor, secure entry</span></li>
-          <li><Icon name="bulb" style={{ color: 'var(--orchid)' }} /><b>Reliable light</b><span>Inverter and solar backup</span></li>
+          <li><Icon name="book" style={{ color: 'var(--orchid)' }} /><b>Trainings &amp; classes</b><span>Run a bootcamp, class or workshop</span></li>
         </ul>
       </div>
 
       <section className="s-sec" id="pricing">
         <div className="wrap">
-          <div className="s-h"><span className="kick">Pricing</span><h2>Come for a day. Stay for the month.</h2><p>Every plan includes fast Wi-Fi, steady power, drinking water and a seat you can actually work from.</p></div>
+          <div className="s-h"><span className="kick">Pricing</span><h2>Come for a day. Stay for the month.</h2><p>Work from a hot desk for a day, a week or a month. Meet clients or your team around the meeting room table, or run a training, workshop, meetup or launch in the event hall.</p></div>
           <div className="s-plans">
             <div className="s-plan"><span className="nm">Day pass</span><span className="pr">{naira(s.dayPass)}</span><span className="per">per person, per day</span><ul><li><Icon name="check" />Any free hot desk</li><li><Icon name="check" />Check in with a QR code</li></ul><button className="btn soft sm" onClick={() => choose('desk')}>Choose</button></div>
             <div className="s-plan hot"><span className="nm">Weekly pass</span><span className="pr">{naira(s.weekly)}</span><span className="per">per person · 6 days, Mon–Sat</span><ul><li><Icon name="check" />Any free desk, Monday to Saturday</li>{s.dayPass * 6 > s.weekly && <li><Icon name="check" />Save {naira(s.dayPass * 6 - s.weekly)} on day passes</li>}</ul><button className="btn amber sm" onClick={() => choose('desk')}>Choose</button></div>
             <div className="s-plan"><span className="nm">Monthly hot desk</span><span className="pr">{naira(s.monthly)}</span><span className="per">per person, per month</span><ul><li><Icon name="check" />24-hour access, Mon–Sat</li><li><Icon name="check" />Any free desk; closed Sundays</li></ul><button className="btn soft sm" onClick={() => choose('desk')}>Choose</button></div>
-            <div className="s-plan"><span className="nm">Meeting room</span><span className="pr">{naira(meeting?.dayRate || 0)}</span><span className="per">per day, 9:00–18:00</span><ul><li><Icon name="check" />Round table for up to {meeting?.capacity}</li><li><Icon name="check" />Add {s.addons.map((a) => a.name).join(', ')}</li></ul><button className="btn soft sm" onClick={() => choose('room')}>Choose</button></div>
+            <div className="s-plan"><span className="nm">Meeting room</span><span className="pr">{naira(meeting?.dayRate || 0)}</span><span className="per">per day, 9:00–18:00</span><ul><li><Icon name="check" />Round table for {meeting?.capacity}+</li><li><Icon name="check" />Add {s.addons.map((a) => a.name).join(', ')}</li></ul><button className="btn soft sm" onClick={() => choose('room')}>Choose</button></div>
             <div className="s-plan"><span className="nm">Event hall</span><span className="pr">{naira(hallFrom)}</span><span className="per">{s.hallPackages.length > 1 ? 'from' : 'per day'}, up to {Math.max(...s.layouts.map((l) => l.capacity))} guests</span><ul><li><Icon name="check" />{s.layouts.length} seating layouts</li><li><Icon name="check" />{s.addons.map((a) => a.name).join(', ')}</li></ul><button className="btn soft sm" onClick={() => choose('hall')}>Choose</button></div>
           </div>
           <p className="ppl-note"><Icon name="users" /><span><b>Workspace passes are for one person each.</b> Booking for your team? Choose how many people when you book, and days are tracked per person. Prices exclude {s.vatPercent}% VAT.</span></p>

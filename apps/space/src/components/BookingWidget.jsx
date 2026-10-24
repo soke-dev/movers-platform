@@ -56,6 +56,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   }, [body]);
 
   const meeting = space.rooms.find((r) => r.kind === 'MEETING');
+  const hallCap = space.rooms.find((r) => r.kind === 'HALL')?.capacity || 30;
   const roomSlug = type === 'hall' ? 'hall' : meeting?.slug;
   const busySlots = avail.data?.rooms.find((r) => r.slug === roomSlug)?.busy || [];
   const pkg = s.hallPackages.find((p) => p.id === f.pkg);
@@ -108,7 +109,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
           {type === 'room' && (
             <>
               <div className="field"><label htmlFor="b-date">Date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
-              <div className="field"><label htmlFor="b-rp">People</label><input id="b-rp" type="number" min="1" max={meeting?.capacity || 10} value={f.rpeople} onChange={(e) => set('rpeople', Math.max(1, Math.min(meeting?.capacity || 10, Number(e.target.value) || 1)))} /><span className="hint">Round table for up to {meeting?.capacity || 10}. Booked for the full day, 9:00–18:00.</span></div>
+              <div className="field"><label htmlFor="b-rp">People</label><input id="b-rp" type="number" min="1" max={hallCap} value={f.rpeople} onChange={(e) => set('rpeople', Math.max(1, Math.min(hallCap, Number(e.target.value) || 1)))} /><span className="hint">Round table for {meeting?.capacity || 10}+. Booked for the full day, 9:00–18:00.</span></div>
               <div className="field wide"><span className="lbl">Add-ons</span><div className="checkrow">
                 {s.addons.map((a) => (
                   <label className="tog" key={a.id}><input type="checkbox" checked={Boolean(f.raddons[a.id])} onChange={(e) => set('raddons', { ...f.raddons, [a.id]: e.target.checked })} />{a.name} {naira(a.price)}{a.perGuest ? '/person' : ''}</label>

@@ -84,9 +84,8 @@ export async function quoteBooking(input, user) {
   if (input.type === 'room') {
     const room = pickRoom(rooms, input.people);
     if (!room) {
-      const most = Math.max(0, ...rooms.filter((x) => x.kind === 'MEETING').map((x) => x.capacity));
       const hall = rooms.find((x) => x.kind === 'HALL');
-      return { error: `The meeting room seats ${most}. Book the event hall for bigger groups${hall ? ` (up to ${hall.capacity})` : ''}.` };
+      return { error: `The space holds up to ${hall?.capacity || 30} people. For a bigger group, call or WhatsApp us.` };
     }
     const clash = (await conflicts(room.id, start, end)).length > 0;
     return { ...quoteRoom(s, room, input), room, start, end, clash };

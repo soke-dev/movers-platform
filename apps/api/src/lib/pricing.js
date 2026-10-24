@@ -64,8 +64,15 @@ export async function conflicts(roomId, start, end, excludeId) {
   });
 }
 
-export const pickRoom = (rooms, people) =>
-  rooms.filter((r) => r.kind === 'MEETING' && r.capacity >= people).sort((a, b) => a.capacity - b.capacity)[0];
+/**
+ * The meeting room. Its capacity is the round table's seats ("10+"), not a hard limit: bigger groups
+ * can book it, up to what the whole space holds (the hall's capacity).
+ */
+export const pickRoom = (rooms, people) => {
+  const hall = rooms.find((r) => r.kind === 'HALL');
+  if (hall && people > hall.capacity) return null;
+  return rooms.filter((r) => r.kind === 'MEETING').sort((a, b) => b.capacity - a.capacity)[0];
+};
 
 export function passWindow(pass, dateStr) {
   const info = PASS_INFO[pass];
