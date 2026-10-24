@@ -9,7 +9,7 @@ import { getSettings } from '../lib/pricing.js';
 import { notify, notifyMany, siteForPurpose } from '../lib/notify.js';
 import { startRefund, syncRefund, cancelRefund, refundable, goesThroughMoneyMoves, refundView } from '../lib/refunds.js';
 import { BookingInput } from './public.js';
-import { createOrder, usablePass, freeDesk, passView, bookingView } from './space.js';
+import { createOrder, usablePass, freeDesk, passView, bookingView, expireUnpaidPasses } from './space.js';
 
 const r = Router();
 r.use(requireStaff);
@@ -63,6 +63,7 @@ r.get('/overview', ah(async (_req, res) => {
 /* ---------------- payments ---------------- */
 
 r.get('/payments', ah(async (req, res) => {
+  await expireUnpaidPasses();
   const status = ['PENDING', 'UNPAID', 'PAID', 'CANCELLED'].includes(req.query.status) ? req.query.status : 'PENDING';
   const q = String(req.query.q || '').trim();
   const payments = await prisma.payment.findMany({

@@ -23,7 +23,9 @@ export const passView = (p) => {
     validFrom: p.validFrom,
     validUntil: p.validUntil,
     price: p.price,
-    status: p.status
+    status: p.status,
+    // Only filled in where the query includes them (the member's own dashboard).
+    payments: (p.payments || []).map(paymentView)
   };
 };
 
@@ -40,6 +42,18 @@ export const bookingView = (b) => ({
   status: b.status,
   payments: (b.payments || []).map(paymentView)
 });
+
+/**
+ * An unpaid pass whose dates have passed can't be used any more, so it and its unpaid payment are
+ * cancelled: nobody keeps owing for a day that's gone. Pass a userId to tidy one member's passes.
+ */
+export async function expireUnpaidPasses(userId) {
+  const stale = await prisma.pass.findMany({ where: { status: 'UNPAID', validUntil: { lt: new Date() }, ...(userId ? { userId } : {}) }, select: { id: true } });
+  if (!stale.length) return;
+  const ids = stale.map((p) => p.id);
+  await prisma.payment.updateMany({ where: { passId: { in: ids }, status: 'UNPAID' }, data: { status: 'CANCELLED' } });
+  await prisma.pass.updateMany({ where: { id: { in: ids } }, data: { status: 'CANCELLED' } });
+}
 
 /** Picks the pass a check-in should use today, best value first. */
 export async function usablePass(userId) {
@@ -66,9 +80,10 @@ export async function freeDesk() {
 
 r.get('/me', ah(async (req, res) => {
   const uid = req.user.id;
+  await expireUnpaidPasses(uid);
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const [passes, visits, openVisit, bookings, payments, referrals, student] = await Promise.all([
-    prisma.pass.findMany({ where: { userId: uid }, orderBy: { createdAt: 'desc' }, include: { visits: true } }),
+    prisma.pass.findMany({ where: { userId: uid }, orderBy: { createdAt: 'desc' }, include: { visits: true, payments: true } }),
     prisma.visit.findMany({ where: { userId: uid, checkedInAt: { gte: addDays(monthStart, -62) } }, orderBy: { checkedInAt: 'desc' } }),
     prisma.visit.findFirst({ where: { userId: uid, checkedInAt: { gte: startOfDay() }, checkedOutAt: null } }),
     prisma.booking.findMany({ where: { userId: uid }, orderBy: { start: 'desc' }, take: 40, include: { room: true, payments: { include: { refunds: true } } } }),
