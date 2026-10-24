@@ -3,6 +3,8 @@ import { api, useApi, useToast, Icon, Modal, Table, Chip, Empty, Loading, ErrorB
 import { PageHead, UserSearch } from '../shared.jsx';
 
 const ST = { CONFIRMED: ['ok', 'Confirmed'], HELD: ['wait', 'Being confirmed'], UNPAID: ['due', 'Unpaid'], CANCELLED: ['lock', 'Cancelled'] };
+const PASS_ST = { ACTIVE: ['ok', 'Paid'], HELD: ['wait', 'Being confirmed'], UNPAID: ['due', 'Unpaid'], CANCELLED: ['lock', 'Cancelled'], EXPIRED: ['lock', 'Ended'] };
+const lastDay = (p) => new Date(new Date(p.validUntil).getTime() - 864e5);
 
 export default function Bookings() {
   const [filter, setFilter] = useState('upcoming');
@@ -10,6 +12,13 @@ export default function Bookings() {
   const toast = useToast();
   const [add, setAdd] = useState(false);
   const [cancel, setCancel] = useState(null);
+  const [cancelPass, setCancelPass] = useState(null);
+  const doCancelPass = async () => {
+    const r = await api(`/admin/space/passes/${cancelPass.id}/cancel`, { method: 'POST' });
+    toast(r.refundDue ? 'Pass cancelled. It was paid: refund it from Payments → Paid.' : 'Pass cancelled.');
+    setCancelPass(null);
+    reload();
+  };
   const doCancel = async () => {
     await api(`/admin/space/bookings/${cancel.id}/cancel`, { method: 'POST' });
     toast('Booking cancelled. The slot is free again.');
@@ -18,16 +27,33 @@ export default function Bookings() {
   };
   return (
     <div className="pg">
-      <PageHead eyebrow="Movers Space" title="Bookings" desc="Meeting rooms and the event hall. Confirm payments under Payments; cancel to free a slot.">
+      <PageHead eyebrow="Movers Space" title="Bookings" desc="Desk passes, the meeting room and the event hall. Confirm payments under Payments; cancel to free a slot.">
         <button className="btn ink" onClick={() => setAdd(true)}><Icon name="plus" />Add booking</button>
       </PageHead>
       <div className="tabs" role="tablist">
-        {[['upcoming', 'Upcoming'], ['hall', 'Event hall'], ['room', 'Meeting rooms'], ['past', 'Past'], ['cancelled', 'Cancelled']].map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}>{l}</button>)}
+        {[['upcoming', 'Upcoming'], ['desk', 'Desk passes'], ['room', 'Meeting room'], ['hall', 'Event hall'], ['past', 'Past'], ['cancelled', 'Cancelled']].map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}>{l}</button>)}
       </div>
       <div className="panel">
-        {loading ? <Loading /> : error ? <ErrorBox error={error} /> : data.bookings.length ? (
+        {loading ? <Loading /> : error ? <ErrorBox error={error} /> : data.bookings.length + (data.passes?.length || 0) ? (
           <Table head={['Date', 'Booked by', 'Space', 'Time', 'Total', 'Status', '']}>
-            {data.bookings.map((b) => {
+            {[...data.bookings.map((b) => ({ b, at: new Date(b.start) })), ...(data.passes || []).map((p) => ({ p, at: new Date(p.validFrom) }))]
+              .sort((x, y) => (filter === 'past' || filter === 'cancelled' ? y.at - x.at : x.at - y.at))
+              .map(({ b, p }) => {
+              if (p) {
+                const [k, l] = PASS_ST[p.status] || ['lock', p.status];
+                const oneDay = new Date(p.validUntil) - new Date(p.validFrom) <= 864e5;
+                return (
+                  <tr key={`p-${p.id}`}>
+                    <td>{fmtDay(p.validFrom)}</td>
+                    <td><b>{p.user.name}</b><div className="small">{p.user.phone}</div></td>
+                    <td>{p.label}<div className="small">Hot desk{p.people > 1 ? ` · ${p.people} people` : ''}</div></td>
+                    <td className="tm">{oneDay ? 'Full day' : `to ${fmtDay(lastDay(p))}`}</td>
+                    <td className="amt">{naira(p.price)}</td>
+                    <td><Chip kind={k}>{l}</Chip></td>
+                    <td>{p.status !== 'CANCELLED' && new Date(p.validUntil) > new Date() && <button className="linkbtn" onClick={() => setCancelPass(p)}>Cancel</button>}</td>
+                  </tr>
+                );
+              }
               const [k, l] = ST[b.status] || ['lock', b.status];
               const balance = b.status === 'CONFIRMED' && b.payments.some((p) => p.status === 'UNPAID');
               return (
@@ -46,6 +72,12 @@ export default function Bookings() {
         ) : <Empty icon="calendar">No bookings here.</Empty>}
       </div>
       {add && <AddBooking onClose={() => setAdd(false)} onDone={reload} />}
+      {cancelPass && (
+        <Modal title="Cancel this pass?" onClose={() => setCancelPass(null)}>
+          <p style={{ marginTop: 10, color: 'var(--ink-2)' }}>{cancelPass.label} for {cancelPass.user.name}, from {fmtDay(cancelPass.validFrom)}. Unpaid payments are cancelled too; if it was paid, refund it from Payments.</p>
+          <div className="sheet-foot"><button className="btn ghost" onClick={() => setCancelPass(null)}>Keep it</button><button className="btn ink" onClick={doCancelPass}>Cancel pass</button></div>
+        </Modal>
+      )}
       {cancel && (
         <Modal title="Cancel this booking?" onClose={() => setCancel(null)}>
           <p style={{ marginTop: 10, color: 'var(--ink-2)' }}>{cancel.room} for {cancel.user.name}, {fmtDay(cancel.start)} {fmtTime(cancel.start)}. Any unpaid payments are cancelled too. Refund paid money separately.</p>

@@ -576,8 +576,26 @@ r.get('/space/bookings', ah(async (req, res) => {
     f === 'cancelled' ? { status: 'CANCELLED' }
       : f === 'past' ? { status: { not: 'CANCELLED' }, end: { lt: new Date() } }
         : { status: { not: 'CANCELLED' }, end: { gte: new Date() }, ...(f === 'hall' ? { room: { kind: 'HALL' } } : f === 'room' ? { room: { kind: 'MEETING' } } : {}) };
-  const bookings = await prisma.booking.findMany({ where, include: { room: true, user: userBits, payments: true }, orderBy: { start: f === 'past' || f === 'cancelled' ? 'desc' : 'asc' }, take: 100 });
-  res.json({ bookings: bookings.map((b) => ({ ...bookingView(b), user: b.user })) });
+  const bookings = f === 'desk' ? [] : await prisma.booking.findMany({ where, include: { room: true, user: userBits, payments: true }, orderBy: { start: f === 'past' || f === 'cancelled' ? 'desc' : 'asc' }, take: 100 });
+  // Desk passes show alongside rooms and the hall (not in the room and hall tabs).
+  await expireUnpaidPasses();
+  const now = new Date();
+  const passWhere =
+    f === 'cancelled' ? { status: 'CANCELLED' }
+      : f === 'past' ? { status: { not: 'CANCELLED' }, validUntil: { lt: now } }
+        : f === 'upcoming' || f === 'desk' ? { status: { notIn: ['CANCELLED', 'EXPIRED'] }, validUntil: { gte: now } }
+          : null;
+  const passes = passWhere ? await prisma.pass.findMany({ where: passWhere, include: { user: userBits, visits: true, payments: true }, orderBy: { validFrom: f === 'past' || f === 'cancelled' ? 'desc' : 'asc' }, take: 100 }) : [];
+  res.json({ bookings: bookings.map((b) => ({ ...bookingView(b), user: b.user })), passes: passes.map((p) => ({ ...passView(p), user: p.user })) });
+}));
+
+/** Cancel a desk pass. Unpaid and waiting payments are cancelled with it; paid money is refunded from Payments. */
+r.post('/space/passes/:id/cancel', ah(async (req, res) => {
+  const p = await prisma.pass.findUnique({ where: { id: req.params.id }, include: { payments: true } });
+  if (!p) throw notFound('Pass');
+  await prisma.pass.update({ where: { id: p.id }, data: { status: 'CANCELLED' } });
+  await prisma.payment.updateMany({ where: { passId: p.id, status: { in: ['UNPAID', 'PENDING'] } }, data: { status: 'CANCELLED' } });
+  res.json({ ok: true, refundDue: p.payments.some((x) => x.status === 'PAID') });
 }));
 
 r.post('/space/bookings/:id/cancel', ah(async (req, res) => {
