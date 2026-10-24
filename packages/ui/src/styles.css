@@ -515,3 +515,17 @@ img.avatar, img.prof-av { object-fit: cover; background: var(--mist) }
   .head-actions .theme-switch, .s-actions .theme-switch { display: none }
   .m-theme { display: flex }
 }
+
+/* Website headers on phones: round account button (log in / dashboard); shorter main button. */
+.m-account { display: none; width: 42px; height: 42px; border-radius: 50%; place-items: center; flex: none; font-size: 19px; color: inherit; text-decoration: none; border: 2px solid currentColor }
+.head-actions .m-account { color: var(--ink) }
+.btn .short { display: none }
+@media (max-width: 900px) { .m-account { display: grid } }
+@media (max-width: 480px) { .btn .long { display: none } .btn .short { display: inline } }
+@media (max-width: 400px) {
+  .head-actions, .s-actions { gap: 6px }
+  .m-account, .head-actions .menu-btn, .s-actions .menu-btn { width: 38px; height: 38px }
+  .head-actions .btn, .s-actions .btn { padding: 10px 14px }
+  .l-head .brand, .s-head .brand { font-size: 17px; gap: 8px }
+  .l-head .brand svg, .s-head .brand svg { width: 26px; height: auto }
+}

@@ -56,7 +56,9 @@ function Header({ cohort }) {
         <div className="head-actions">
           <ThemeToggle variant="switch" />
           {user ? <Link className="btn ghost hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn ghost hide-m" to="/login">Log in</Link>}
-          <Link className="btn pink" to="/apply?kind=full">Apply now</Link>
+          {/* Phones: a round account button instead (log in, or the dashboard once logged in). */}
+          <Link className="m-account" to={user ? '/dashboard' : '/login'} aria-label={user ? 'My dashboard' : 'Log in'} title={user ? 'My dashboard' : 'Log in'}><Icon name="user" /></Link>
+          <Link className="btn pink" to="/apply?kind=full"><span className="long">Apply now</span><span className="short">Apply</span></Link>
           <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
         </div>
         {open && (

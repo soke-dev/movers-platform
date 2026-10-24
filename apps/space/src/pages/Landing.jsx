@@ -100,7 +100,9 @@ function LandingPage() {
           <div className="s-actions">
             <ThemeToggle variant="switch" />
             {user ? <Link className="btn wline hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn wline hide-m" to="/login">Log in</Link>}
-            <a className="btn amber" href="#book">Book now</a>
+            {/* Phones: a round account button instead (log in, or the dashboard once logged in). */}
+            <Link className="m-account" to={user ? '/dashboard' : '/login'} aria-label={user ? 'My dashboard' : 'Log in'} title={user ? 'My dashboard' : 'Log in'}><Icon name="user" /></Link>
+            <a className="btn amber" href="#book"><span className="long">Book now</span><span className="short">Book</span></a>
             <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
           </div>
           {open && (
