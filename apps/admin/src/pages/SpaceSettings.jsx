@@ -44,7 +44,7 @@ export default function SpaceSettings() {
         <div className="fields">
           {input('s-desks', 'Hot desks', f.desks, num('desks'))}
           {input('s-day', 'Day pass (₦, per person)', f.dayPass, num('dayPass'))}
-          {input('s-week', 'Weekly pass, 7 days (₦, per person)', f.weekly, num('weekly'))}
+          {input('s-week', 'Weekly pass, 6 days Mon–Sat (₦, per person)', f.weekly, num('weekly'))}
           {input('s-mon', 'Monthly hot desk (₦)', f.monthly, num('monthly'))}
           {input('s-stu', 'Movers Learn student discount (%)', f.studentDiscount, num('studentDiscount'), { max: 100 })}
           {input('s-ref', 'Refreshments for meeting rooms, per person (₦)', f.refreshments, num('refreshments'))}

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
-import { ah, parse, bad, notFound, HttpError, startOfDay, addDays } from '../lib/util.js';
+import { ah, parse, bad, notFound, HttpError, startOfDay, addDays, isSunday } from '../lib/util.js';
 import { requireAuth } from '../lib/auth.js';
 import { newPayment, paymentView } from '../lib/payments.js';
 import { getSettings, PASS_INFO, passWindow } from '../lib/pricing.js';
@@ -156,6 +156,7 @@ r.post('/bookings/:id/cancel', ah(async (req, res) => {
 }));
 
 r.post('/checkin', ah(async (req, res) => {
+  if (isSunday()) throw bad('We’re closed on Sundays. See you on Monday.');
   const open = await prisma.visit.findFirst({ where: { userId: req.user.id, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
   if (open) throw bad(`You’re already checked in at desk ${open.desk}.`);
   const pass = await usablePass(req.user.id);

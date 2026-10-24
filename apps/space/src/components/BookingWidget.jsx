@@ -8,7 +8,7 @@ const tomorrow = () => {
   return isoDate(d);
 };
 const hh = (h) => `${String(h).padStart(2, '0')}:00`;
-const PASSES = [['day', 'Day pass', 'dayPass'], ['weekly', 'Weekly pass', 'weekly'], ['monthly', 'Monthly hot desk', 'monthly']];
+const PASSES = [['day', 'Day pass', 'dayPass'], ['weekly', 'Weekly pass (6 days)', 'weekly'], ['monthly', 'Monthly hot desk', 'monthly']];
 
 /**
  * Book a desk, a meeting room or the event hall. Prices come from the server.
@@ -132,7 +132,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
           <div>
             <div className="avail-h"><span>Hot desks on <b>{fmtDay(f.date)}</b></span><span className="mono">{avail.data ? `${avail.data.desksFree} of ${avail.data.desks} free` : '…'}</span></div>
             {avail.data && <div className="desk-grid">{Array.from({ length: avail.data.desks }, (_, i) => <i key={i} className={i >= avail.data.desksFree ? 'taken' : ''} />)}</div>}
-            <p className="small muted" style={{ marginTop: 8 }}>First come, first served. Check in with your QR code from 8:00.</p>
+            <p className="small muted" style={{ marginTop: 8 }}>First come, first served. Open Monday to Saturday; check in with your QR code from 8:00.</p>
           </div>
         ) : (
           <div>

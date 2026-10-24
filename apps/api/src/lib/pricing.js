@@ -8,7 +8,8 @@ const finish = (s, lines, sub, payNowShare = 1) => ({ lines, subtotal: sub, vat:
 
 export const PASS_INFO = {
   day: { kind: 'DAY', label: 'Day pass', days: 1, validDays: 1 },
-  weekly: { kind: 'WEEKLY', label: 'Weekly pass', days: null, validDays: 7 },
+  // 6 open days, Monday to Saturday: any 7 days in a row hold exactly one Sunday, when we're closed.
+  weekly: { kind: 'WEEKLY', label: 'Weekly pass (6 days)', days: null, validDays: 7 },
   monthly: { kind: 'MONTHLY', label: 'Monthly hot desk', days: null, validDays: 30 }
 };
 

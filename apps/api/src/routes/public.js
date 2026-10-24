@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
-import { ah, parse, dateOnly, addDays, startOfDay, sameDay } from '../lib/util.js';
+import { ah, parse, dateOnly, addDays, startOfDay, sameDay, isSunday, CLOSED_SUNDAY } from '../lib/util.js';
 import { getCurrentCohort, seatsTaken, cohortView, skillView } from '../lib/cohorts.js';
 import { getSettings, quoteDesk, quoteRoom, quoteHall, bookingWindow, conflicts, pickRoom } from '../lib/pricing.js';
 
@@ -73,6 +73,7 @@ export const BookingInput = z.discriminatedUnion('type', [
 /** Prices a booking. The same function decides the price when the booking is made. */
 export async function quoteBooking(input, user) {
   const s = await getSettings();
+  if (isSunday(dateOnly(input.date))) return { error: CLOSED_SUNDAY };
   // The student rate is automatic for accounts with a paid Movers Learn class; nobody can just claim it.
   if (input.type === 'desk') return { ...quoteDesk(s, { ...input, student: Boolean(user?.isStudent) }), what: null };
   const rooms = await prisma.room.findMany();

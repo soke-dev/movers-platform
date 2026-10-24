@@ -71,3 +71,7 @@ export const addDays = (d, n) => {
 };
 
 export const sameDay = (a, b) => startOfDay(a).getTime() === startOfDay(b).getTime();
+
+/** Movers Space opens Monday to Saturday. */
+export const CLOSED_SUNDAY = 'We’re closed on Sundays. Pick another day.';
+export const isSunday = (d = new Date()) => new Date(d).getDay() === 0;

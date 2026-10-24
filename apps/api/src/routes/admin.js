@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db.js';
-import { ah, parse, bad, notFound, dateOnly, startOfDay, addDays, naira } from '../lib/util.js';
+import { ah, parse, bad, notFound, dateOnly, startOfDay, addDays, naira, isSunday } from '../lib/util.js';
 import { requireStaff, publicUser } from '../lib/auth.js';
 import { markPaid, markUnpaid, newPayment, paymentView, syncTarget } from '../lib/payments.js';
 import { syncSessions, seatsTaken, cohortView, skillView, getCurrentCohort } from '../lib/cohorts.js';
@@ -506,6 +506,7 @@ const CheckinBody = z.object({ userId: z.string(), guestName: z.string().trim().
 const openVisit = (userId) => prisma.visit.findFirst({ where: { userId, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
 
 async function checkIn(userId, guestName = '') {
+  if (isSunday()) throw bad('We’re closed on Sundays.');
   if (!guestName) {
     const open = await openVisit(userId);
     if (open) throw bad(`Already checked in at desk ${open.desk}.`);
