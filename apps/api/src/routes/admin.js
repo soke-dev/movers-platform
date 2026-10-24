@@ -623,7 +623,6 @@ const SettingsBody = z.object({
   weekly: z.coerce.number().int().positive(),
   monthly: z.coerce.number().int().positive(),
   studentDiscount: z.coerce.number().int().min(0).max(100),
-  refreshments: z.coerce.number().int().min(0),
   hallPackages: z.array(z.object({ id: z.string(), name: z.string(), start: z.number().int(), end: z.number().int(), price: z.number().int() })),
   addons: z.array(z.object({ id: z.string(), name: z.string(), price: z.number().int(), perGuest: z.boolean() })),
   rooms: z.array(z.object({ id: z.string(), dayRate: z.coerce.number().int().min(0), capacity: z.coerce.number().int().min(1) })).optional()

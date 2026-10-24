@@ -57,7 +57,7 @@ export const BookingInput = z.discriminatedUnion('type', [
     type: z.literal('room'),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     people: z.coerce.number().int().min(1).max(200),
-    refreshments: z.boolean().optional()
+    addons: z.record(z.boolean()).optional()
   }),
   z.object({
     type: z.literal('hall'),

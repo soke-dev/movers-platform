@@ -60,7 +60,7 @@ function AddBooking({ onClose, onDone }) {
   const toast = useToast();
   const space = useApi('/public/space');
   const [who, setWho] = useState(null);
-  const [f, setF] = useState({ type: 'room', date: isoDate(new Date(Date.now() + 864e5)), people: 4, pkg: '', guests: 20, layout: 'classroom', paid: false });
+  const [f, setF] = useState({ type: 'room', date: isoDate(new Date(Date.now() + (new Date().getDay() === 6 ? 2 : 1) * 864e5)), people: 4, pkg: '', guests: 20, layout: 'classroom', paid: false });
   const [err, setErr] = useState('');
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
   const s = space.data?.settings;

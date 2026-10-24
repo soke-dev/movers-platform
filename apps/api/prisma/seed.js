@@ -64,7 +64,6 @@ async function main() {
       weekly: 15000,
       monthly: 45000,
       studentDiscount: 20,
-      refreshments: 1000,
       // The hall is booked by the day.
       hallPackages: [{ id: 'day', name: 'Full day', start: 8, end: 20, price: 100000 }],
       addons: [

@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, useApi, useAuth, Modal, PayFlow, LoginForm, RegisterForm, Loading, naira, fmtDay, isoDate } from '@movers/ui';
 
+/** Tomorrow, or Monday if tomorrow is a Sunday (we're closed). */
 const tomorrow = () => {
   const d = new Date();
-  d.setDate(d.getDate() + 1);
+  d.setDate(d.getDate() + (d.getDay() === 6 ? 2 : 1));
   return isoDate(d);
 };
 const hh = (h) => `${String(h).padStart(2, '0')}:00`;
@@ -21,7 +22,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   const [type, setType] = useState(initialType);
   const [f, setF] = useState({
     date: tomorrow(), pass: 'day', people: 1,
-    rpeople: 4, refreshments: false,
+    rpeople: 4, raddons: {},
     pkg: s.hallPackages[0].id, guests: 20, layout: s.layouts[1]?.id || s.layouts[0].id,
     addons: {}, deposit: true
   });
@@ -39,7 +40,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
 
   const body = useMemo(() => {
     if (type === 'desk') return { type, pass: f.pass, date: f.date, people: Number(f.people) };
-    if (type === 'room') return { type, date: f.date, people: Number(f.rpeople), refreshments: f.refreshments };
+    if (type === 'room') return { type, date: f.date, people: Number(f.rpeople), addons: f.raddons };
     return { type, date: f.date, pkg: f.pkg, guests: Number(f.guests), layout: f.layout, addons: f.addons, deposit: f.deposit };
   }, [type, f]);
 
@@ -108,7 +109,11 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
             <>
               <div className="field"><label htmlFor="b-date">Date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
               <div className="field"><label htmlFor="b-rp">People</label><input id="b-rp" type="number" min="1" max={meeting?.capacity || 10} value={f.rpeople} onChange={(e) => set('rpeople', Math.max(1, Math.min(meeting?.capacity || 10, Number(e.target.value) || 1)))} /><span className="hint">Round table for up to {meeting?.capacity || 10}. Booked for the full day, 9:00–18:00.</span></div>
-              <div className="field wide"><span className="lbl">Extras</span><div className="checkrow"><label className="tog"><input type="checkbox" checked={f.refreshments} onChange={(e) => set('refreshments', e.target.checked)} />Refreshments, {naira(s.refreshments)} per person</label></div></div>
+              <div className="field wide"><span className="lbl">Add-ons</span><div className="checkrow">
+                {s.addons.map((a) => (
+                  <label className="tog" key={a.id}><input type="checkbox" checked={Boolean(f.raddons[a.id])} onChange={(e) => set('raddons', { ...f.raddons, [a.id]: e.target.checked })} />{a.name} {naira(a.price)}{a.perGuest ? '/person' : ''}</label>
+                ))}
+              </div></div>
             </>
           )}
           {type === 'hall' && (

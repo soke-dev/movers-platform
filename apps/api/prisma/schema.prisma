@@ -495,8 +495,6 @@ model SpaceSettings {
   weekly          Int
   monthly         Int
   studentDiscount Int   @default(20)
-  /// Refreshments for a meeting room booking, per person.
-  refreshments    Int   @default(1000)
   hallPackages    Json
   addons          Json
   layouts         Json

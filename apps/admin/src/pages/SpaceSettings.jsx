@@ -18,7 +18,7 @@ export default function SpaceSettings() {
         method: 'PATCH',
         body: {
           desks: Number(f.desks), dayPass: Number(f.dayPass), weekly: Number(f.weekly), monthly: Number(f.monthly),
-          studentDiscount: Number(f.studentDiscount), refreshments: Number(f.refreshments),
+          studentDiscount: Number(f.studentDiscount),
           hallPackages: f.hallPackages.map((p) => ({ ...p, price: Number(p.price), start: Number(p.start), end: Number(p.end) })),
           addons: f.addons.map((a) => ({ ...a, price: Number(a.price) })),
           rooms: f.rooms.map((r) => ({ id: r.id, dayRate: Number(r.dayRate), capacity: Number(r.capacity) }))
@@ -47,7 +47,6 @@ export default function SpaceSettings() {
           {input('s-week', 'Weekly pass, 6 days Mon–Sat (₦, per person)', f.weekly, num('weekly'))}
           {input('s-mon', 'Monthly hot desk (₦)', f.monthly, num('monthly'))}
           {input('s-stu', 'Movers Learn student discount (%)', f.studentDiscount, num('studentDiscount'), { max: 100 })}
-          {input('s-ref', 'Refreshments for meeting rooms, per person (₦)', f.refreshments, num('refreshments'))}
         </div>
       </div>
       <div className="panel">
@@ -66,7 +65,7 @@ export default function SpaceSettings() {
         </div>
       </div>
       <div className="panel">
-        <div className="panel-h"><h2>Hall add-ons</h2></div>
+        <div className="panel-h"><h2>Add-ons, for the meeting room and event hall</h2></div>
         <div className="fields">
           {f.addons.map((a, i) => input(`ad-${a.id}`, `${a.name}${a.perGuest ? ' (per guest)' : ''}, ₦`, a.price, (e) => setF({ ...f, addons: f.addons.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)) }), { key: a.id }))}
         </div>

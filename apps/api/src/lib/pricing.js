@@ -30,14 +30,14 @@ export function quoteDesk(s, { pass, people, student }) {
 /** The meeting room is booked for the whole day. */
 export const ROOM_DAY = { open: 9, close: 18 };
 
-export function quoteRoom(s, room, { people, refreshments }) {
-  const lines = [[`${room.name} · full day`, room.dayRate]];
-  let sub = room.dayRate;
-  if (refreshments) {
-    lines.push([`Refreshments × ${people}`, s.refreshments * people]);
-    sub += s.refreshments * people;
-  }
-  return finish(s, lines, sub);
+/** The chosen add-ons (one list for the meeting room and the hall) as price lines. Per-guest ones × people. */
+function addonLines(s, addons = {}, people) {
+  return s.addons.filter((a) => addons[a.id]).map((a) => (a.perGuest ? [`${a.name} × ${people}`, a.price * people] : [a.name, a.price]));
+}
+
+export function quoteRoom(s, room, { people, addons }) {
+  const lines = [[`${room.name} · full day`, room.dayRate], ...addonLines(s, addons, people)];
+  return finish(s, lines, lines.reduce((t, [, amt]) => t + amt, 0));
 }
 
 export function quoteHall(s, { pkg, guests, layout, addons = {}, deposit }) {
@@ -46,15 +46,8 @@ export function quoteHall(s, { pkg, guests, layout, addons = {}, deposit }) {
   const l = s.layouts.find((x) => x.id === layout);
   if (!l) throw bad('Choose a layout.');
   if (guests > l.capacity) throw bad(`${l.name} seats ${l.capacity}. Pick another layout or fewer guests.`);
-  const lines = [[`${p.name} · ${l.name}`, p.price]];
-  let sub = p.price;
-  for (const a of s.addons) {
-    if (!addons[a.id]) continue;
-    const amt = a.perGuest ? a.price * guests : a.price;
-    lines.push([a.perGuest ? `${a.name} × ${guests}` : a.name, amt]);
-    sub += amt;
-  }
-  return { ...finish(s, lines, sub, deposit ? 0.5 : 1), package: p, layout: l };
+  const lines = [[`${p.name} · ${l.name}`, p.price], ...addonLines(s, addons, guests)];
+  return { ...finish(s, lines, lines.reduce((t, [, amt]) => t + amt, 0), deposit ? 0.5 : 1), package: p, layout: l };
 }
 
 /** Works out the time window of a room or hall booking. */

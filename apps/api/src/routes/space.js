@@ -121,7 +121,7 @@ export async function createOrder(userId, input) {
       end: q.end,
       people: input.type === 'room' ? input.people : input.guests,
       layout: input.type === 'hall' ? q.layout.name : '',
-      details: { lines: q.lines, package: q.package?.name || null, addons: input.addons || {}, refreshments: input.refreshments || false },
+      details: { lines: q.lines, package: q.package?.name || null, addons: input.addons || {} },
       subtotal: q.subtotal,
       vat: q.vat,
       total: q.total
