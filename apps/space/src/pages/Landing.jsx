@@ -22,12 +22,54 @@ function Contour({ className, cx, cy, rings, base, step, seed, sx, w, h }) {
   return <svg className={`contour ${className}`} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">{paths.map((d, i) => <path key={i} d={d} />)}</svg>;
 }
 
-function LayoutDots({ id }) {
+/** A small seating plan with as many seats as the layout holds (drawn up to 36), so the picture matches the number. */
+function LayoutDots({ id, capacity }) {
+  const n = Math.max(1, Math.min(capacity, 36));
+  const seat = (key, cx, cy, r = 3.4) => <circle key={key} cx={cx} cy={cy} r={r} fill="#2E84FF" />;
   const dots = [];
-  if (id === 'theatre') for (let r = 0; r < 5; r++) for (let c = 0; c < 10; c++) dots.push(<circle key={`${r}${c}`} cx={17 + c * 14.5} cy={26 + r * 11} r="3.6" fill="#2E84FF" />);
-  if (id === 'classroom') for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) { const x = 14 + c * 48, y = 24 + r * 11; dots.push(<rect key={`t${r}${c}`} x={x} y={y} width="36" height="5" rx="2" fill="#9DBEF5" />, <circle key={`a${r}${c}`} cx={x + 9} cy={y + 8.5} r="3" fill="#2E84FF" />, <circle key={`b${r}${c}`} cx={x + 27} cy={y + 8.5} r="3" fill="#2E84FF" />); }
-  if (id === 'board') { dots.push(<rect key="t" x="30" y="30" width="100" height="22" rx="8" fill="#9DBEF5" />); for (let i = 0; i < 7; i++) dots.push(<circle key={`u${i}`} cx={40 + i * 13.3} cy="23" r="4" fill="#2E84FF" />, <circle key={`d${i}`} cx={40 + i * 13.3} cy="59" r="4" fill="#2E84FF" />); }
-  if (id === 'mixer') [[30, 24], [80, 20], [130, 26], [45, 56], [95, 58], [138, 60]].forEach(([x, y], j) => { dots.push(<circle key={`m${j}`} cx={x} cy={y} r="6" fill="#9DBEF5" />); for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2 + 0.3; dots.push(<circle key={`m${j}${k}`} cx={x + Math.cos(a) * 12} cy={y + Math.sin(a) * 11} r="2.8" fill="#2E84FF" />); } });
+  if (id === 'theatre') {
+    // Rows of 6, centred under the stage.
+    const cols = Math.min(6, n);
+    const rows = Math.ceil(n / cols);
+    const gapY = Math.min(11, 52 / rows);
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / cols);
+      const inRow = Math.min(cols, n - r * cols);
+      dots.push(seat(`s${i}`, 80 + ((i % cols) - (inRow - 1) / 2) * 16, 26 + r * gapY));
+    }
+  }
+  if (id === 'classroom') {
+    // Tables of two, three to a row.
+    const tables = Math.ceil(n / 2);
+    const rows = Math.ceil(tables / 3);
+    const gapY = Math.min(11, 48 / rows);
+    for (let t = 0; t < tables; t++) {
+      const x = 14 + (t % 3) * 48;
+      const y = 20 + Math.floor(t / 3) * gapY;
+      dots.push(<rect key={`t${t}`} x={x} y={y} width="36" height="4.5" rx="2" fill="#9DBEF5" />, seat(`a${t}`, x + 9, y + 8, 2.8));
+      if (t * 2 + 1 < n) dots.push(seat(`b${t}`, x + 27, y + 8, 2.8));
+    }
+  }
+  if (id === 'board') {
+    // One long table, seats split along both sides.
+    const top = Math.ceil(n / 2);
+    const bottom = n - top;
+    dots.push(<rect key="t" x="24" y="30" width="112" height="20" rx="8" fill="#9DBEF5" />);
+    const row = (k, y, count) => { for (let i = 0; i < count; i++) dots.push(seat(`${k}${i}`, 80 + (i - (count - 1) / 2) * (100 / Math.max(top, 1)), y, 3.6)); };
+    row('u', 22, top);
+    row('d', 58, bottom);
+  }
+  if (id === 'mixer') {
+    // Round tables of six.
+    const tables = Math.ceil(n / 6);
+    const spots = [[30, 24], [80, 22], [130, 24], [45, 56], [95, 58], [140, 56]];
+    for (let j = 0; j < tables; j++) {
+      const [x, y] = spots[j % spots.length];
+      dots.push(<circle key={`m${j}`} cx={x} cy={y} r="6" fill="#9DBEF5" />);
+      const here = Math.min(6, n - j * 6);
+      for (let k = 0; k < here; k++) { const a = (k / 6) * Math.PI * 2 + 0.3; dots.push(seat(`m${j}${k}`, x + Math.cos(a) * 12, y + Math.sin(a) * 11, 2.6)); }
+    }
+  }
   const stage = id === 'theatre' || id === 'classroom' ? <rect x="40" y="8" width="80" height="6" rx="3" fill="#1A5BD1" /> : null;
   return <svg viewBox="0 0 160 78" aria-hidden="true">{stage}{dots}</svg>;
 }
@@ -122,7 +164,7 @@ function LandingPage() {
             <p className="eyebrow" style={{ marginBottom: 12 }}>Hall layouts</p>
             <div className="layouts">
               {s.layouts.map((l) => (
-                <div className="layout" key={l.id}><LayoutDots id={l.id} /><span className="lt"><b>{l.name}</b><span className="cap">up to {l.capacity}</span></span></div>
+                <div className="layout" key={l.id}><LayoutDots id={l.id} capacity={l.capacity} /><span className="lt"><b>{l.name}</b><span className="cap">up to {l.capacity}</span></span></div>
               ))}
             </div>
           </div>
