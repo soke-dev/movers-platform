@@ -315,7 +315,7 @@ function LandingPage() {
 
       <section className="visit" id="visit">
         <div className="wrap visit-in">
-          <div><p className="eyebrow">Visit us</p><h2>Come and see the lab.</h2><p>Walk in for a tour, or call before you come. Registration and enquiries at the front desk.</p></div>
+          <div><p className="eyebrow">Visit us</p><h2>Come and see the lab.</h2><p>Walk in for a tour, or call before you come. Enquiries at the front desk; you register right here on the website.</p></div>
           <dl className="clist">
             <div><dt>Address</dt><dd>{ADDRESS}</dd></div>
             <div><dt>Call or WhatsApp</dt><dd>{PHONE_DISPLAY}</dd></div>

@@ -181,7 +181,7 @@ function LandingPage() {
       <section className="s-visit">
         <div className="wrap">
           <div className="v-card">
-            <div className="v-item"><Icon name="pin" className="ico big-ico" /><div><span className="lbl">For inquiry &amp; registration</span><h3>Walk in:</h3><p>20A Etete Road,<br />GRA Benin City</p></div></div>
+            <div className="v-item"><Icon name="pin" className="ico big-ico" /><div><span className="lbl">For enquiries</span><h3>Walk in:</h3><p>20A Etete Road,<br />GRA Benin City</p></div></div>
             <span className="vr" />
             <div className="v-item"><Icon name="call" className="ico big-ico" /><div><span className="lbl">Or call or text</span><span className="phone">{PHONE_DISPLAY.replace(/\s/g, '')}</span></div></div>
           </div>
