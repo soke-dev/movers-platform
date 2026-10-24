@@ -97,11 +97,11 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
               <div className="field"><label htmlFor="b-pass">Plan</label><select id="b-pass" value={f.pass} onChange={(e) => set('pass', e.target.value)}>{PASSES.map(([k, l, key]) => <option key={k} value={k}>{l} · {naira(s[key])}</option>)}</select></div>
               <div className="field"><label htmlFor="b-date">Start date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
               <div className="field wide"><label htmlFor="b-ppl">How many people?</label><input id="b-ppl" type="number" min="1" max="10" value={f.people} onChange={(e) => set('people', Math.max(1, Math.min(10, Number(e.target.value) || 1)))} /><span className="hint">Each pass covers one person. Everyone you add can check in with your code.</span></div>
-              {/* The student rate is applied by the server for accounts with a paid Movers Learn class. */}
+              {/* The student rate is applied by the server for anyone who has attended a Movers Learn class. */}
               <p className="hint" style={{ gridColumn: '1 / -1' }}>
                 {quote?.studentApplied
                   ? `Movers Learn student: ${s.studentDiscount}% off is applied for one person.`
-                  : `Movers Learn students who have paid for a class get ${s.studentDiscount}% off desk passes${user ? '' : ' once logged in'}.`}
+                  : `Movers Learn students who have attended any of our classes get ${s.studentDiscount}% off desk passes${user ? '' : ' once logged in'}.`}
               </p>
             </>
           )}

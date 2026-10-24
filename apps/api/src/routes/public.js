@@ -74,7 +74,7 @@ export const BookingInput = z.discriminatedUnion('type', [
 export async function quoteBooking(input, user) {
   const s = await getSettings();
   if (isSunday(dateOnly(input.date))) return { error: CLOSED_SUNDAY };
-  // The student rate is automatic for accounts with a paid Movers Learn class; nobody can just claim it.
+  // The student rate is automatic for anyone who has attended a Movers Learn class; nobody can just claim it.
   if (input.type === 'desk') return { ...quoteDesk(s, { ...input, student: Boolean(user?.isStudent) }), what: null };
   const rooms = await prisma.room.findMany();
   const { start, end } = bookingWindow(s, input);
@@ -109,9 +109,9 @@ r.post('/quote', ah(async (req, res) => {
   }
 }));
 
-/** A Movers Learn student for the Space rate: someone who has paid for a Movers Learn class. */
+/** A Movers Learn student for the Space rate: marked present (or late) at one or more Movers Learn classes. */
 export async function isStudent(userId) {
-  return (await prisma.payment.count({ where: { userId, purpose: 'ENROLLMENT', status: 'PAID' } })) > 0;
+  return (await prisma.attendance.count({ where: { userId, status: { in: ['PRESENT', 'LATE'] } } })) > 0;
 }
 
 export default r;
