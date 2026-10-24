@@ -40,8 +40,7 @@ function LandingPage() {
   if (loading) return <Loading />;
   if (error) return <div className="wrap" style={{ paddingBlock: 40 }}><ErrorBox error={error} /></div>;
   const s = data.settings;
-  const roomA = data.rooms.find((r) => r.slug === 'room-a');
-  const roomB = data.rooms.find((r) => r.slug === 'room-b');
+  const meeting = data.rooms.find((r) => r.kind === 'MEETING');
   const hallFrom = Math.min(...s.hallPackages.map((p) => p.price));
   const choose = (t) => {
     setBookType(t);
@@ -83,8 +82,8 @@ function LandingPage() {
           </div>
         </div>
         <ul className="amen wrap">
-          <li><Icon name="laptop" style={{ color: 'var(--amber)' }} /><b>Flexible workspaces</b><span>Hot desks and dedicated desks</span></li>
-          <li><Icon name="users" style={{ color: 'var(--orchid)' }} /><b>Meeting rooms</b><span>Rooms for {roomA?.capacity} and {roomB?.capacity}</span></li>
+          <li><Icon name="laptop" style={{ color: 'var(--amber)' }} /><b>Flexible workspaces</b><span>Hot desks by the day, week or month</span></li>
+          <li><Icon name="users" style={{ color: 'var(--orchid)' }} /><b>Meeting room</b><span>Round table for {meeting?.capacity}</span></li>
           <li><Icon name="calendar" style={{ color: 'var(--amber)' }} /><b>Event hall</b><span>Meetings, trainings, conferences</span></li>
           <li><Icon name="wifi" style={{ color: 'var(--orchid)' }} /><b>24-hour access</b><span>For monthly members</span></li>
           <li><Icon name="shield" style={{ color: 'var(--amber)' }} /><b>Conducive &amp; private</b><span>Quiet floor, secure entry</span></li>
@@ -97,10 +96,10 @@ function LandingPage() {
           <div className="s-h"><span className="kick">Pricing</span><h2>Come for a day. Stay for the month.</h2><p>Every plan includes fast Wi-Fi, steady power, drinking water and a seat you can actually work from.</p></div>
           <div className="s-plans">
             <div className="s-plan"><span className="nm">Day pass</span><span className="pr">{naira(s.dayPass)}</span><span className="per">per person, per day</span><ul><li><Icon name="check" />Any free hot desk</li><li><Icon name="check" />Check in with a QR code</li></ul><button className="btn soft sm" onClick={() => choose('desk')}>Choose</button></div>
-            <div className="s-plan hot"><span className="nm">10-day bundle</span><span className="pr">{naira(s.bundle10)}</span><span className="per">per person · use within 60 days</span><ul><li><Icon name="check" />Days tracked in your dashboard</li><li><Icon name="check" />Save {naira(s.dayPass * 10 - s.bundle10)}</li></ul><button className="btn amber sm" onClick={() => choose('desk')}>Choose</button></div>
+            <div className="s-plan hot"><span className="nm">Weekly pass</span><span className="pr">{naira(s.weekly)}</span><span className="per">per person · 7 days in a row</span><ul><li><Icon name="check" />Any free desk, any day that week</li>{s.dayPass * 7 > s.weekly && <li><Icon name="check" />Save {naira(s.dayPass * 7 - s.weekly)} on day passes</li>}</ul><button className="btn amber sm" onClick={() => choose('desk')}>Choose</button></div>
             <div className="s-plan"><span className="nm">Monthly hot desk</span><span className="pr">{naira(s.monthly)}</span><span className="per">per person, per month</span><ul><li><Icon name="check" />24-hour access</li><li><Icon name="check" />Any free desk, any day</li></ul><button className="btn soft sm" onClick={() => choose('desk')}>Choose</button></div>
-            <div className="s-plan"><span className="nm">Meeting room</span><span className="pr">{naira(roomA?.hourlyRate || 0)}</span><span className="per">per hour, Room A ({roomA?.capacity})</span><ul><li><Icon name="check" />Screen and HDMI</li><li><Icon name="check" />Room B ({roomB?.capacity}): {naira(roomB?.hourlyRate || 0)}/hr</li></ul><button className="btn soft sm" onClick={() => choose('room')}>Choose</button></div>
-            <div className="s-plan"><span className="nm">Event hall</span><span className="pr">{naira(hallFrom)}</span><span className="per">from, up to {Math.max(...s.layouts.map((l) => l.capacity))} guests</span><ul><li><Icon name="check" />{s.layouts.length} seating layouts</li><li><Icon name="check" />PA, projector, refreshments</li></ul><button className="btn soft sm" onClick={() => choose('hall')}>Choose</button></div>
+            <div className="s-plan"><span className="nm">Meeting room</span><span className="pr">{naira(meeting?.dayRate || 0)}</span><span className="per">per day, 9:00–18:00</span><ul><li><Icon name="check" />Round table for up to {meeting?.capacity}</li><li><Icon name="check" />Screen and HDMI</li></ul><button className="btn soft sm" onClick={() => choose('room')}>Choose</button></div>
+            <div className="s-plan"><span className="nm">Event hall</span><span className="pr">{naira(hallFrom)}</span><span className="per">{s.hallPackages.length > 1 ? 'from' : 'per day'}, up to {Math.max(...s.layouts.map((l) => l.capacity))} guests</span><ul><li><Icon name="check" />{s.layouts.length} seating layouts</li><li><Icon name="check" />{s.addons.map((a) => a.name).join(', ')}</li></ul><button className="btn soft sm" onClick={() => choose('hall')}>Choose</button></div>
           </div>
           <p className="ppl-note"><Icon name="users" /><span><b>Workspace passes are for one person each.</b> Booking for your team? Choose how many people when you book, and days are tracked per person. Prices exclude {s.vatPercent}% VAT.</span></p>
         </div>

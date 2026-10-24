@@ -61,37 +61,30 @@ async function main() {
       id: 1,
       desks: 24,
       dayPass: 3000,
-      bundle10: 25000,
+      weekly: 15000,
       monthly: 45000,
-      dedicated: 70000,
-      vatPercent: 7.5,
       studentDiscount: 20,
-      teaPerPerson: 500,
-      hallPackages: [
-        { id: 'am', name: 'Morning half day', start: 8, end: 12, price: 60000 },
-        { id: 'pm', name: 'Afternoon half day', start: 13, end: 17, price: 60000 },
-        { id: 'eve', name: 'Evening', start: 17, end: 20, price: 45000 },
-        { id: 'full', name: 'Full day', start: 8, end: 20, price: 100000 }
-      ],
+      refreshments: 1000,
+      // The hall is booked by the day.
+      hallPackages: [{ id: 'day', name: 'Full day', start: 8, end: 20, price: 100000 }],
       addons: [
-        { id: 'projector', name: 'Projector and screen', price: 5000, perGuest: false },
-        { id: 'pa', name: 'PA system with 2 mics', price: 10000, perGuest: false },
+        { id: 'tv', name: '55-inch TV', price: 5000, perGuest: false },
+        { id: 'sound', name: 'Sound system with mic', price: 5000, perGuest: false },
         { id: 'food', name: 'Refreshments', price: 1500, perGuest: true },
-        { id: 'cleaning', name: 'Extra cleaning', price: 7500, perGuest: false }
+        { id: 'cleaning', name: 'Extra cleaning', price: 2000, perGuest: false }
       ],
       layouts: [
-        { id: 'theatre', name: 'Theatre', capacity: 50 },
+        { id: 'theatre', name: 'Theatre', capacity: 30 },
         { id: 'classroom', name: 'Classroom', capacity: 30 },
         { id: 'board', name: 'Boardroom', capacity: 16 },
-        { id: 'mixer', name: 'Mixer', capacity: 60 }
+        { id: 'mixer', name: 'Mixer', capacity: 30 }
       ]
     }
   });
 
   const rooms = [
-    { slug: 'room-a', name: 'Meeting room A', kind: 'MEETING', capacity: 6, hourlyRate: 5000 },
-    { slug: 'room-b', name: 'Meeting room B', kind: 'MEETING', capacity: 12, hourlyRate: 7500 },
-    { slug: 'hall', name: 'Event hall', kind: 'HALL', capacity: 60, hourlyRate: 0 }
+    { slug: 'meeting-room', name: 'Meeting room', kind: 'MEETING', capacity: 10, dayRate: 30000 },
+    { slug: 'hall', name: 'Event hall', kind: 'HALL', capacity: 30, dayRate: 0 }
   ];
   for (const room of rooms) await prisma.room.upsert({ where: { slug: room.slug }, update: {}, create: room });
 

@@ -49,18 +49,15 @@ r.get('/availability', ah(async (req, res) => {
 export const BookingInput = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('desk'),
-    pass: z.enum(['day', 'bundle', 'monthly', 'dedicated']),
+    pass: z.enum(['day', 'weekly', 'monthly']),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    people: z.coerce.number().int().min(1).max(10),
-    student: z.boolean().optional()
+    people: z.coerce.number().int().min(1).max(10)
   }),
   z.object({
     type: z.literal('room'),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    start: z.coerce.number().int().min(8).max(21),
-    hours: z.coerce.number().int().min(1).max(8),
-    people: z.coerce.number().int().min(1).max(12),
-    tea: z.boolean().optional()
+    people: z.coerce.number().int().min(1).max(200),
+    refreshments: z.boolean().optional()
   }),
   z.object({
     type: z.literal('hall'),
@@ -76,14 +73,20 @@ export const BookingInput = z.discriminatedUnion('type', [
 /** Prices a booking. The same function decides the price when the booking is made. */
 export async function quoteBooking(input, user) {
   const s = await getSettings();
-  if (input.type === 'desk') return { ...quoteDesk(s, { ...input, student: input.student && user?.isStudent }), what: null };
+  // The student rate is automatic for accounts with a paid Movers Learn class; nobody can just claim it.
+  if (input.type === 'desk') return { ...quoteDesk(s, { ...input, student: Boolean(user?.isStudent) }), what: null };
   const rooms = await prisma.room.findMany();
   const { start, end } = bookingWindow(s, input);
   if ((end - dateOnly(input.date)) / 3600e3 > 22) return { error: 'Bookings must end by 22:00. Pick an earlier start or fewer hours.' };
-  if (start < new Date()) return { error: 'Pick a time that hasn’t passed yet.' };
+  // A meeting room day can be booked until it ends; hall blocks until they start.
+  if ((input.type === 'room' ? end : start) < new Date()) return { error: input.type === 'room' ? 'Pick today or a later date.' : 'Pick a time that hasn’t passed yet.' };
   if (input.type === 'room') {
     const room = pickRoom(rooms, input.people);
-    if (!room) return { error: 'Our largest meeting room holds 12. Book the event hall for bigger groups.' };
+    if (!room) {
+      const most = Math.max(0, ...rooms.filter((x) => x.kind === 'MEETING').map((x) => x.capacity));
+      const hall = rooms.find((x) => x.kind === 'HALL');
+      return { error: `The meeting room seats ${most}. Book the event hall for bigger groups${hall ? ` (up to ${hall.capacity})` : ''}.` };
+    }
     const clash = (await conflicts(room.id, start, end)).length > 0;
     return { ...quoteRoom(s, room, input), room, start, end, clash };
   }
@@ -98,14 +101,14 @@ r.post('/quote', ah(async (req, res) => {
   const user = req.user ? { ...req.user, isStudent: await isStudent(req.user.id) } : null;
   try {
     const q = await quoteBooking(input, user);
-    res.json({ ...q, room: q.room ? { name: q.room.name, slug: q.room.slug } : undefined, studentApplied: Boolean(input.student && user?.isStudent) });
+    res.json({ ...q, room: q.room ? { name: q.room.name, slug: q.room.slug } : undefined, studentApplied: input.type === 'desk' && Boolean(user?.isStudent) });
   } catch (e) {
     if (e.status === 400) return res.json({ error: e.message });
     throw e;
   }
 }));
 
-/** Students with at least one paid class payment get the Space student rate. */
+/** A Movers Learn student for the Space rate: someone who has paid for a Movers Learn class. */
 export async function isStudent(userId) {
   return (await prisma.payment.count({ where: { userId, purpose: 'ENROLLMENT', status: 'PAID' } })) > 0;
 }

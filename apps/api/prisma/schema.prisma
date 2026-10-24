@@ -74,7 +74,9 @@ enum RoomKind {
 
 enum PassKind {
   DAY
+  /// Old 10-day bundles. New passes use WEEKLY.
   BUNDLE
+  WEEKLY
   MONTHLY
   DEDICATED
 }
@@ -423,7 +425,8 @@ model Room {
   name       String
   kind       RoomKind
   capacity   Int
-  hourlyRate Int      @default(0)
+  /// Meeting room: the price for a full day. Unused for the hall, which is priced by time block.
+  dayRate    Int      @default(0)
 
   bookings Booking[]
 }
@@ -488,12 +491,12 @@ model SpaceSettings {
   id              Int   @id @default(1)
   desks           Int   @default(24)
   dayPass         Int
-  bundle10        Int
+  /// Weekly pass: 7 days in a row, per person.
+  weekly          Int
   monthly         Int
-  dedicated       Int
-  vatPercent      Float @default(7.5)
   studentDiscount Int   @default(20)
-  teaPerPerson    Int   @default(500)
+  /// Refreshments for a meeting room booking, per person.
+  refreshments    Int   @default(1000)
   hallPackages    Json
   addons          Json
   layouts         Json

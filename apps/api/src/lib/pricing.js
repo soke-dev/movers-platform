@@ -3,27 +3,22 @@ import { atHour, bad, dateOnly, addDays } from './util.js';
 
 export const getSettings = () => prisma.spaceSettings.findUniqueOrThrow({ where: { id: 1 } });
 
-const vatOf = (s, sub) => Math.round((sub * s.vatPercent) / 100);
-const finish = (s, lines, sub, payNowShare = 1) => {
-  const vat = vatOf(s, sub);
-  const total = sub + vat;
-  return { lines, subtotal: sub, vat, total, payNow: Math.round(total * payNowShare) };
-};
+// Prices include everything; there's no VAT on top. `vat` stays 0 so old bookings and receipts still add up.
+const finish = (s, lines, sub, payNowShare = 1) => ({ lines, subtotal: sub, vat: 0, total: sub, payNow: Math.round(sub * payNowShare) });
 
 export const PASS_INFO = {
   day: { kind: 'DAY', label: 'Day pass', days: 1, validDays: 1 },
-  bundle: { kind: 'BUNDLE', label: '10-day bundle', days: 10, validDays: 60 },
-  monthly: { kind: 'MONTHLY', label: 'Monthly hot desk', days: null, validDays: 30 },
-  dedicated: { kind: 'DEDICATED', label: 'Dedicated desk, monthly', days: null, validDays: 30 }
+  weekly: { kind: 'WEEKLY', label: 'Weekly pass', days: null, validDays: 7 },
+  monthly: { kind: 'MONTHLY', label: 'Monthly hot desk', days: null, validDays: 30 }
 };
 
 export function quoteDesk(s, { pass, people, student }) {
   const info = PASS_INFO[pass];
   if (!info) throw bad('Choose a plan.');
-  const unit = { day: s.dayPass, bundle: s.bundle10, monthly: s.monthly, dedicated: s.dedicated }[pass];
+  const unit = { day: s.dayPass, weekly: s.weekly, monthly: s.monthly }[pass];
   const lines = [[`${info.label}${people > 1 ? ` × ${people} people` : ''}`, unit * people]];
   let sub = unit * people;
-  if (student && pass !== 'dedicated') {
+  if (student) {
     const off = Math.round((unit * s.studentDiscount) / 100);
     lines.push([`Movers Learn student, ${s.studentDiscount}% off (1 person)`, -off]);
     sub -= off;
@@ -31,12 +26,15 @@ export function quoteDesk(s, { pass, people, student }) {
   return finish(s, lines, sub);
 }
 
-export function quoteRoom(s, room, { hours, people, tea }) {
-  const lines = [[`${room.name} · ${hours} h × ₦${room.hourlyRate.toLocaleString('en-NG')}`, room.hourlyRate * hours]];
-  let sub = room.hourlyRate * hours;
-  if (tea) {
-    lines.push([`Tea and water × ${people}`, s.teaPerPerson * people]);
-    sub += s.teaPerPerson * people;
+/** The meeting room is booked for the whole day. */
+export const ROOM_DAY = { open: 9, close: 18 };
+
+export function quoteRoom(s, room, { people, refreshments }) {
+  const lines = [[`${room.name} · full day`, room.dayRate]];
+  let sub = room.dayRate;
+  if (refreshments) {
+    lines.push([`Refreshments × ${people}`, s.refreshments * people]);
+    sub += s.refreshments * people;
   }
   return finish(s, lines, sub);
 }
@@ -60,10 +58,7 @@ export function quoteHall(s, { pkg, guests, layout, addons = {}, deposit }) {
 
 /** Works out the time window of a room or hall booking. */
 export function bookingWindow(s, input) {
-  if (input.type === 'room') {
-    const start = atHour(input.date, input.start);
-    return { start, end: new Date(start.getTime() + input.hours * 3600e3) };
-  }
+  if (input.type === 'room') return { start: atHour(input.date, ROOM_DAY.open), end: atHour(input.date, ROOM_DAY.close) };
   const p = s.hallPackages.find((x) => x.id === input.pkg);
   if (!p) throw bad('Choose a time block.');
   return { start: atHour(input.date, p.start), end: atHour(input.date, p.end) };

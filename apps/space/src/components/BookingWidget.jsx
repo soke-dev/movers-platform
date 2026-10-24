@@ -8,22 +8,22 @@ const tomorrow = () => {
   return isoDate(d);
 };
 const hh = (h) => `${String(h).padStart(2, '0')}:00`;
-const PASSES = [['day', 'Day pass', 'dayPass'], ['bundle', '10-day bundle', 'bundle10'], ['monthly', 'Monthly hot desk', 'monthly'], ['dedicated', 'Dedicated desk, monthly', 'dedicated']];
+const PASSES = [['day', 'Day pass', 'dayPass'], ['weekly', 'Weekly pass', 'weekly'], ['monthly', 'Monthly hot desk', 'monthly']];
 
 /**
  * Book a desk, a meeting room or the event hall. Prices come from the server.
  * Used on the public Space site and inside the member dashboard.
  */
-export function BookingWidget({ space, initialType = 'desk', inDashboard = false, isStudent = false, onBooked }) {
+export function BookingWidget({ space, initialType = 'desk', inDashboard = false, onBooked }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const s = space.settings;
   const [type, setType] = useState(initialType);
   const [f, setF] = useState({
-    date: tomorrow(), pass: 'day', people: 1, student: isStudent,
-    start: 10, hours: 2, rpeople: 4, tea: false,
-    pkg: s.hallPackages[1]?.id || s.hallPackages[0].id, guests: 30, layout: s.layouts[1]?.id || s.layouts[0].id,
-    addons: { projector: true }, deposit: true
+    date: tomorrow(), pass: 'day', people: 1,
+    rpeople: 4, refreshments: false,
+    pkg: s.hallPackages[0].id, guests: 20, layout: s.layouts[1]?.id || s.layouts[0].id,
+    addons: {}, deposit: true
   });
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
   const [quote, setQuote] = useState(null);
@@ -36,11 +36,10 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   useEffect(() => {
     if (initialType) setType(initialType);
   }, [initialType]);
-  useEffect(() => set('student', isStudent), [isStudent]);
 
   const body = useMemo(() => {
-    if (type === 'desk') return { type, pass: f.pass, date: f.date, people: Number(f.people), student: f.student };
-    if (type === 'room') return { type, date: f.date, start: Number(f.start), hours: Number(f.hours), people: Number(f.rpeople), tea: f.tea };
+    if (type === 'desk') return { type, pass: f.pass, date: f.date, people: Number(f.people) };
+    if (type === 'room') return { type, date: f.date, people: Number(f.rpeople), refreshments: f.refreshments };
     return { type, date: f.date, pkg: f.pkg, guests: Number(f.guests), layout: f.layout, addons: f.addons, deposit: f.deposit };
   }, [type, f]);
 
@@ -55,16 +54,18 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
     };
   }, [body]);
 
-  const roomSlug = type === 'hall' ? 'hall' : Number(f.rpeople) > 6 ? 'room-b' : 'room-a';
+  const meeting = space.rooms.find((r) => r.kind === 'MEETING');
+  const roomSlug = type === 'hall' ? 'hall' : meeting?.slug;
   const busySlots = avail.data?.rooms.find((r) => r.slug === roomSlug)?.busy || [];
   const pkg = s.hallPackages.find((p) => p.id === f.pkg);
-  const mine = type === 'room' ? [Number(f.start), Number(f.start) + Number(f.hours)] : type === 'hall' ? [pkg.start, pkg.end] : null;
+  // The meeting room is booked for the whole day, 9:00–18:00.
+  const mine = type === 'room' ? [9, 18] : type === 'hall' ? [pkg.start, pkg.end] : null;
   const layout = s.layouts.find((l) => l.id === f.layout);
   const desksShort = type === 'desk' && f.date === isoDate() && avail.data && Number(f.people) > avail.data.desksFree;
   const blocked = !quote || quote.error || quote.clash || desksShort;
 
   const what = type === 'desk' ? `${PASSES.find((p) => p[0] === f.pass)[1]}${f.people > 1 ? ` · ${f.people} people` : ''}` : type === 'room' ? (quote?.room?.name || 'Meeting room') : `Event hall · ${layout.name}`;
-  const when = type === 'desk' ? `From ${fmtDay(f.date)}` : `${fmtDay(f.date)} · ${hh(mine[0])}–${hh(mine[1])}`;
+  const when = type === 'desk' ? `From ${fmtDay(f.date)}` : `${fmtDay(f.date)} · ${type === 'room' ? 'full day, ' : ''}${hh(mine[0])}–${hh(mine[1])}`;
 
   async function book() {
     if (!user) return setAuth('register');
@@ -72,7 +73,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
     setErr('');
     try {
       const r = await api('/space/book', { method: 'POST', body });
-      setPay({ payment: r.payment, lines: [[what, when], ...quote.lines.map(([a, b]) => [a, b < 0 ? `−${naira(-b)}` : b]), ['VAT', quote.vat, 'muted'], ['Total', quote.total, 'muted']] });
+      setPay({ payment: r.payment, lines: [[what, when], ...quote.lines.map(([a, b]) => [a, b < 0 ? `−${naira(-b)}` : b]), ['Total', quote.total, 'muted']] });
     } catch (e) {
       setErr(e.message);
     } finally {
@@ -95,26 +96,29 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
               <div className="field"><label htmlFor="b-pass">Plan</label><select id="b-pass" value={f.pass} onChange={(e) => set('pass', e.target.value)}>{PASSES.map(([k, l, key]) => <option key={k} value={k}>{l} · {naira(s[key])}</option>)}</select></div>
               <div className="field"><label htmlFor="b-date">Start date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
               <div className="field wide"><label htmlFor="b-ppl">How many people?</label><input id="b-ppl" type="number" min="1" max="10" value={f.people} onChange={(e) => set('people', Math.max(1, Math.min(10, Number(e.target.value) || 1)))} /><span className="hint">Each pass covers one person. Everyone you add can check in with your code.</span></div>
-              <div className="field wide"><span className="lbl">Discount</span><div className="checkrow"><label className="tog"><input type="checkbox" checked={f.student} onChange={(e) => set('student', e.target.checked)} />I’m a Movers Learn student ({s.studentDiscount}% off)</label></div>
-                {f.student && quote && !quote.error && !quote.studentApplied && <span className="hint">{user ? 'We couldn’t find a paid Movers Learn class on your account, so the discount isn’t applied.' : 'Applied after you log in, if you have a paid Movers Learn class.'}</span>}
-              </div>
+              {/* The student rate is applied by the server for accounts with a paid Movers Learn class. */}
+              <p className="hint" style={{ gridColumn: '1 / -1' }}>
+                {quote?.studentApplied
+                  ? `Movers Learn student: ${s.studentDiscount}% off is applied for one person.`
+                  : `Movers Learn students who have paid for a class get ${s.studentDiscount}% off desk passes${user ? '' : ' once logged in'}.`}
+              </p>
             </>
           )}
           {type === 'room' && (
             <>
               <div className="field"><label htmlFor="b-date">Date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
-              <div className="field"><label htmlFor="b-start">Start</label><select id="b-start" value={f.start} onChange={(e) => set('start', e.target.value)}>{Array.from({ length: 13 }, (_, i) => 8 + i).map((h) => <option key={h} value={h}>{hh(h)}</option>)}</select></div>
-              <div className="field"><label htmlFor="b-hours">Hours</label><select id="b-hours" value={f.hours} onChange={(e) => set('hours', e.target.value)}>{[1, 2, 3, 4, 5, 6].map((h) => <option key={h}>{h}</option>)}</select></div>
-              <div className="field"><label htmlFor="b-rp">People</label><input id="b-rp" type="number" min="1" max="12" value={f.rpeople} onChange={(e) => set('rpeople', Math.max(1, Math.min(12, Number(e.target.value) || 1)))} /><span className="hint">Up to 6 uses Room A, 7–12 uses Room B.</span></div>
-              <div className="field wide"><span className="lbl">Extras</span><div className="checkrow"><label className="tog"><input type="checkbox" checked={f.tea} onChange={(e) => set('tea', e.target.checked)} />Tea and water, {naira(s.teaPerPerson)} each</label></div></div>
+              <div className="field"><label htmlFor="b-rp">People</label><input id="b-rp" type="number" min="1" max={meeting?.capacity || 10} value={f.rpeople} onChange={(e) => set('rpeople', Math.max(1, Math.min(meeting?.capacity || 10, Number(e.target.value) || 1)))} /><span className="hint">Round table for up to {meeting?.capacity || 10}. Booked for the full day, 9:00–18:00.</span></div>
+              <div className="field wide"><span className="lbl">Extras</span><div className="checkrow"><label className="tog"><input type="checkbox" checked={f.refreshments} onChange={(e) => set('refreshments', e.target.checked)} />Refreshments, {naira(s.refreshments)} per person</label></div></div>
             </>
           )}
           {type === 'hall' && (
             <>
               <div className="field"><label htmlFor="b-date">Date</label><input id="b-date" type="date" min={isoDate()} value={f.date} onChange={(e) => e.target.value && set('date', e.target.value)} /></div>
-              <div className="field"><label htmlFor="b-pkg">Time block</label><select id="b-pkg" value={f.pkg} onChange={(e) => set('pkg', e.target.value)}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {hh(p.start)}–{hh(p.end)} · {naira(p.price)}</option>)}</select></div>
+              {s.hallPackages.length > 1
+                ? <div className="field"><label htmlFor="b-pkg">Time block</label><select id="b-pkg" value={f.pkg} onChange={(e) => set('pkg', e.target.value)}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {hh(p.start)}–{hh(p.end)} · {naira(p.price)}</option>)}</select></div>
+                : <div className="field"><span className="lbl">Booking</span><p style={{ marginTop: 6 }}>Full day, {hh(pkg.start)}–{hh(pkg.end)} · {naira(pkg.price)}</p></div>}
               <div className="field"><label htmlFor="b-lay">Layout</label><select id="b-lay" value={f.layout} onChange={(e) => set('layout', e.target.value)}>{s.layouts.map((l) => <option key={l.id} value={l.id}>{l.name} · up to {l.capacity}</option>)}</select></div>
-              <div className="field"><label htmlFor="b-g">Guests</label><input id="b-g" type="number" min="1" max="200" value={f.guests} onChange={(e) => set('guests', Math.max(1, Number(e.target.value) || 1))} /><span className="hint">{layout.name} seats up to {layout.capacity}.</span></div>
+              <div className="field"><label htmlFor="b-g">Guests</label><input id="b-g" type="number" min="1" max={layout.capacity} value={f.guests} onChange={(e) => set('guests', Math.max(1, Number(e.target.value) || 1))} /><span className="hint">{layout.name} seats up to {layout.capacity}.</span></div>
               <div className="field wide"><span className="lbl">Add-ons</span><div className="checkrow">
                 {s.addons.map((a) => (
                   <label className="tog" key={a.id}><input type="checkbox" checked={Boolean(f.addons[a.id])} onChange={(e) => set('addons', { ...f.addons, [a.id]: e.target.checked })} />{a.name} {naira(a.price)}{a.perGuest ? '/guest' : ''}</label>
@@ -132,7 +136,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
           </div>
         ) : (
           <div>
-            <div className="avail-h"><span>{type === 'room' ? (Number(f.rpeople) > 6 ? 'Meeting room B' : 'Meeting room A') : 'Event hall'} on <b>{fmtDay(f.date)}</b></span><span className="legend" style={{ margin: 0 }}><span><i style={{ background: '#C3D2EE' }} />Booked</span><span><i style={{ background: 'var(--blue)' }} />Your pick</span></span></div>
+            <div className="avail-h"><span>{type === 'room' ? 'Meeting room' : 'Event hall'} on <b>{fmtDay(f.date)}</b></span><span className="legend" style={{ margin: 0 }}><span><i style={{ background: '#C3D2EE' }} />Booked</span><span><i style={{ background: 'var(--blue)' }} />Your pick</span></span></div>
             <div className="timeline">
               {busySlots.map(([a, b], i) => <span key={i} className="blk busy" style={{ left: pct(a), width: `calc(${pct(b)} - ${pct(a)})` }} title={`Booked ${hh(a)}–${hh(b)}`} />)}
               {mine && <span className={`blk mine${quote?.clash ? ' clash' : ''}`} style={{ left: pct(mine[0]), width: `calc(${pct(Math.min(22, mine[1]))} - ${pct(mine[0])})` }} />}
@@ -147,12 +151,11 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
         {!quote ? <Loading text="Pricing…" /> : quote.error ? <p className="warn">{quote.error}</p> : (
           <ul className="lines">
             {quote.lines.map(([a, b], i) => <li key={i}><span>{a}</span><span>{b < 0 ? `−${naira(-b)}` : naira(b)}</span></li>)}
-            <li className="muted"><span>VAT</span><span>{naira(quote.vat)}</span></li>
             <li className="tot"><span>Total</span><span>{naira(quote.total)}</span></li>
             {quote.payNow !== quote.total && <li><span>Due now (50%)</span><span>{naira(quote.payNow)}</span></li>}
           </ul>
         )}
-        {quote?.clash && <p className="warn">That time overlaps an existing booking. Pick another start time or date.</p>}
+        {quote?.clash && <p className="warn">{type === 'room' ? 'The meeting room is already booked that day. Pick another date.' : 'That time overlaps an existing booking. Pick another time block or date.'}</p>}
         {desksShort && <p className="warn">Not enough free desks today. Pick another date or fewer people.</p>}
         {err && <p className="warn">{err}</p>}
         <button className="btn amber lg full" disabled={blocked || busy} onClick={book}>{busy ? 'Saving…' : `Book and pay${quote && !quote.error ? ` ${naira(quote.payNow)}` : ''}`}</button>

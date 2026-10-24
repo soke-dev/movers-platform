@@ -619,21 +619,19 @@ r.get('/space/settings', ah(async (_req, res) => res.json({ settings: await getS
 const SettingsBody = z.object({
   desks: z.coerce.number().int().min(1),
   dayPass: z.coerce.number().int().positive(),
-  bundle10: z.coerce.number().int().positive(),
+  weekly: z.coerce.number().int().positive(),
   monthly: z.coerce.number().int().positive(),
-  dedicated: z.coerce.number().int().positive(),
-  vatPercent: z.coerce.number().min(0).max(50),
   studentDiscount: z.coerce.number().int().min(0).max(100),
-  teaPerPerson: z.coerce.number().int().min(0),
+  refreshments: z.coerce.number().int().min(0),
   hallPackages: z.array(z.object({ id: z.string(), name: z.string(), start: z.number().int(), end: z.number().int(), price: z.number().int() })),
   addons: z.array(z.object({ id: z.string(), name: z.string(), price: z.number().int(), perGuest: z.boolean() })),
-  rooms: z.array(z.object({ id: z.string(), hourlyRate: z.coerce.number().int().min(0), capacity: z.coerce.number().int().min(1) })).optional()
+  rooms: z.array(z.object({ id: z.string(), dayRate: z.coerce.number().int().min(0), capacity: z.coerce.number().int().min(1) })).optional()
 }).partial();
 
 r.patch('/space/settings', ah(async (req, res) => {
   const { rooms, ...body } = parse(SettingsBody, req.body);
   const settings = await prisma.spaceSettings.update({ where: { id: 1 }, data: body });
-  for (const room of rooms || []) await prisma.room.update({ where: { id: room.id }, data: { hourlyRate: room.hourlyRate, capacity: room.capacity } });
+  for (const room of rooms || []) await prisma.room.update({ where: { id: room.id }, data: { dayRate: room.dayRate, capacity: room.capacity } });
   res.json({ settings });
 }));
 

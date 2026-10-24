@@ -26,7 +26,7 @@ export default function Visits() {
   const p = data.activePass;
   return (
     <div className="pg">
-      <div className="pg-h"><div><p className="eyebrow">{p ? `${p.label} · valid until ${fmtDay(p.validUntil)}` : 'No active pass'}</p><h1>Visits</h1><p className="desc">Each check-in uses one day from a bundle or day pass. Check out when you leave so your hours are right.</p></div></div>
+      <div className="pg-h"><div><p className="eyebrow">{p ? `${p.label} · valid until ${fmtDay(p.validUntil)}` : 'No active pass'}</p><h1>Visits</h1><p className="desc">Each check-in uses your pass for that day. Check out when you leave so your hours are right.</p></div></div>
       <div className="stats">
         <div className="card"><span className="k">Visits</span><div className="big">{inMonth.length}</div><p className="sub">{monthName(first)}</p></div>
         <div className="card"><span className="k">Hours</span><div className="big">{hm(minutes)}</div><p className="sub">This month</p></div>

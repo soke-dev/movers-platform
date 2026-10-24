@@ -171,7 +171,7 @@ Authorised redirect URIs: `https://api.moverstech.xyz/auth/google/callback`, and
 ## Automatic reminders
 Once `RESEND_API_KEY` is set, the API emails reminders between 8:00 and 20:00, each one once:
 class fees and hall balances due in 3 days or overdue, quizzes closing and projects due within a day (for
-students who haven't done them), room and hall bookings the next day, and monthly passes or dedicated desks
+students who haven't done them), room and hall bookings the next day, and monthly passes
 ending in 3 days. Set `REMINDERS=off` on the api service to stop them.
 
 ## Things to add later

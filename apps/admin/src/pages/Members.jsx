@@ -88,7 +88,7 @@ function SellPass({ onClose, onDone }) {
           <>
             <div className="row" style={{ justifyContent: 'space-between' }}><b>{who.name}</b><button className="linkbtn" onClick={() => setWho(null)}>Change</button></div>
             <div className="fields">
-              <div className="field"><label htmlFor="sp-p">Pass</label><select id="sp-p" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })}><option value="day">Day pass</option><option value="bundle">10-day bundle</option><option value="monthly">Monthly hot desk</option><option value="dedicated">Dedicated desk, monthly</option></select></div>
+              <div className="field"><label htmlFor="sp-p">Pass</label><select id="sp-p" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })}><option value="day">Day pass</option><option value="weekly">Weekly pass</option><option value="monthly">Monthly hot desk</option></select></div>
               <div className="field"><label htmlFor="sp-n">People</label><input id="sp-n" type="number" min="1" max="10" value={f.people} onChange={(e) => setF({ ...f, people: e.target.value })} /></div>
               <div className="field"><label htmlFor="sp-d">Starts</label><input id="sp-d" type="date" min={isoDate()} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></div>
               <div className="field"><span className="lbl">Payment</span><div className="checkrow"><label className="tog"><input type="checkbox" checked={f.paid} onChange={(e) => setF({ ...f, paid: e.target.checked })} />Paid now at the desk</label></div></div>

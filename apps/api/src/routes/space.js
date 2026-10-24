@@ -15,7 +15,7 @@ export const passView = (p) => {
   return {
     id: p.id,
     kind: p.kind,
-    label: Object.values(PASS_INFO).find((x) => x.kind === p.kind)?.label || p.kind,
+    label: Object.values(PASS_INFO).find((x) => x.kind === p.kind)?.label || (p.kind === 'BUNDLE' ? '10-day bundle' : p.kind),
     people: p.people,
     daysTotal: p.daysTotal,
     daysUsed: used,
@@ -48,7 +48,7 @@ export async function usablePass(userId) {
     where: { userId, status: 'ACTIVE', validFrom: { lte: now }, validUntil: { gt: startOfDay(now) } },
     include: { visits: true }
   });
-  const order = { DEDICATED: 0, MONTHLY: 1, BUNDLE: 2, DAY: 3 };
+  const order = { DEDICATED: 0, MONTHLY: 1, WEEKLY: 2, BUNDLE: 3, DAY: 4 };
   const today = startOfDay(now);
   return passes
     .filter((p) => p.daysTotal == null || p.visits.length < p.daysTotal)
@@ -121,7 +121,7 @@ export async function createOrder(userId, input) {
       end: q.end,
       people: input.type === 'room' ? input.people : input.guests,
       layout: input.type === 'hall' ? q.layout.name : '',
-      details: { lines: q.lines, package: q.package?.name || null, addons: input.addons || {}, tea: input.tea || false },
+      details: { lines: q.lines, package: q.package?.name || null, addons: input.addons || {}, refreshments: input.refreshments || false },
       subtotal: q.subtotal,
       vat: q.vat,
       total: q.total
@@ -159,7 +159,7 @@ r.post('/checkin', ah(async (req, res) => {
   const open = await prisma.visit.findFirst({ where: { userId: req.user.id, checkedInAt: { gte: startOfDay() }, checkedOutAt: null, guestName: '' } });
   if (open) throw bad(`You’re already checked in at desk ${open.desk}.`);
   const pass = await usablePass(req.user.id);
-  if (!pass) throw bad('You don’t have a pass you can use today. Buy a day pass or a bundle first.');
+  if (!pass) throw bad('You don’t have a pass you can use today. Buy a day, weekly or monthly pass first.');
   const desk = await freeDesk();
   if (!desk) throw bad('Every desk is taken right now. Ask at the front desk.');
   const visit = await prisma.visit.create({ data: { userId: req.user.id, passId: pass.id, desk } });

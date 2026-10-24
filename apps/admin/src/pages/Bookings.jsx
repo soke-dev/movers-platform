@@ -60,15 +60,15 @@ function AddBooking({ onClose, onDone }) {
   const toast = useToast();
   const space = useApi('/public/space');
   const [who, setWho] = useState(null);
-  const [f, setF] = useState({ type: 'room', date: isoDate(new Date(Date.now() + 864e5)), start: 10, hours: 2, people: 4, pkg: 'pm', guests: 30, layout: 'classroom', paid: false });
+  const [f, setF] = useState({ type: 'room', date: isoDate(new Date(Date.now() + 864e5)), people: 4, pkg: '', guests: 20, layout: 'classroom', paid: false });
   const [err, setErr] = useState('');
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
   const s = space.data?.settings;
   const save = async () => {
     setErr('');
     const order = f.type === 'room'
-      ? { type: 'room', date: f.date, start: Number(f.start), hours: Number(f.hours), people: Number(f.people) }
-      : { type: 'hall', date: f.date, pkg: f.pkg, guests: Number(f.guests), layout: f.layout, addons: {}, deposit: false };
+      ? { type: 'room', date: f.date, people: Number(f.people) }
+      : { type: 'hall', date: f.date, pkg: f.pkg || s.hallPackages[0]?.id, guests: Number(f.guests), layout: f.layout, addons: {}, deposit: false };
     try {
       const r = await api('/admin/space/orders', { method: 'POST', body: { userId: who.id, order, paid: f.paid } });
       toast(`Booked for ${who.name}. Reference ${r.reference}.`);
@@ -90,13 +90,11 @@ function AddBooking({ onClose, onDone }) {
               <div className="field"><label htmlFor="ab-d">Date</label><input id="ab-d" type="date" min={isoDate()} value={f.date} onChange={set('date')} /></div>
               {f.type === 'room' ? (
                 <>
-                  <div className="field"><label htmlFor="ab-s">Start</label><select id="ab-s" value={f.start} onChange={set('start')}>{Array.from({ length: 13 }, (_, i) => 8 + i).map((h) => <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>)}</select></div>
-                  <div className="field"><label htmlFor="ab-h">Hours</label><input id="ab-h" type="number" min="1" max="8" value={f.hours} onChange={set('hours')} /></div>
                   <div className="field"><label htmlFor="ab-p">People</label><input id="ab-p" type="number" min="1" max="12" value={f.people} onChange={set('people')} /></div>
                 </>
               ) : (
                 <>
-                  <div className="field"><label htmlFor="ab-k">Time block</label><select id="ab-k" value={f.pkg} onChange={set('pkg')}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {naira(p.price)}</option>)}</select></div>
+                  {s.hallPackages.length > 1 && <div className="field"><label htmlFor="ab-k">Time block</label><select id="ab-k" value={f.pkg} onChange={set('pkg')}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {naira(p.price)}</option>)}</select></div>}
                   <div className="field"><label htmlFor="ab-l">Layout</label><select id="ab-l" value={f.layout} onChange={set('layout')}>{s.layouts.map((l) => <option key={l.id} value={l.id}>{l.name} · up to {l.capacity}</option>)}</select></div>
                   <div className="field"><label htmlFor="ab-g">Guests</label><input id="ab-g" type="number" min="1" value={f.guests} onChange={set('guests')} /></div>
                 </>
