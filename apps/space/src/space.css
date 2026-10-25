@@ -3,13 +3,17 @@
 .contour { position: absolute; fill: none; stroke-width: 1.4; pointer-events: none }
 .contour.a { top: -140px; left: -120px; width: 620px; height: 520px; stroke: rgba(255,255,255,.42) }
 .contour.b { bottom: -120px; right: -160px; width: 520px; height: 520px; stroke: rgba(255,179,64,.6) }
-.s-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 20px; position: relative; z-index: 5 }
+.s-top { position: sticky; top: 0; z-index: 30; margin-bottom: -84px; color: #fff; transition: background .2s, box-shadow .2s }
+.s-top.stuck { background: var(--blue); box-shadow: 0 12px 30px -20px rgba(10,20,90,.55) }
+.s-band { padding-top: 84px }
+.s-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 84px; position: relative; z-index: 5 }
 .s-head .brand b { color: var(--amber) }
 .s-nav { display: flex; gap: 4px; align-items: center }
 .s-nav a { text-decoration: none; font: 600 15px var(--f-body); padding: 8px 12px; border-radius: 9px; color: rgba(255,255,255,.88) }
 .s-nav a:hover { background: rgba(255,255,255,.14); color: #fff }
 .s-actions { display: flex; gap: 10px; align-items: center }
-.menu-btn { display: none; width: 44px; height: 44px; border-radius: 12px; border: 2px solid rgba(255,255,255,.8); background: transparent; color: #fff; place-items: center; font-size: 20px; cursor: pointer; flex: none }
+.menu-btn { display: none; width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; background: transparent; color: #fff; place-items: center; cursor: pointer; flex: none; transition: background .2s, color .2s }
+.menu-btn[aria-expanded="true"] { background: #fff; color: var(--blue) }
 .m-menu { position: absolute; left: 16px; right: 16px; top: calc(100% - 6px); z-index: 40; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 18px; padding: 8px; box-shadow: 6px 6px 0 var(--amber); display: flex; flex-direction: column }
 .m-menu a { display: flex; align-items: center; justify-content: space-between; padding: 14px; font: 700 17px var(--f-body); border-radius: 10px; text-decoration: none; color: var(--ink) }
 @media (max-width: 900px) { .s-nav, .s-actions .hide-m { display: none } .menu-btn { display: grid } }

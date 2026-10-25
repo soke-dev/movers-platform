@@ -1,6 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon.jsx';
 import { PAY_STATUS, naira, fmtDate, METHOD } from './format.js';
+
+/** True once the page has scrolled past `px` (the website headers get a background then). */
+export function useScrolled(px = 8) {
+  const [scrolled, setScrolled] = useState(() => window.scrollY > px);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > px);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, [px]);
+  return scrolled;
+}
+
+/** Round menu button for the website headers on phones: two lines that turn into an X when open. */
+export const MenuButton = ({ open, onClick }) => (
+  <button type="button" className="menu-btn" aria-expanded={open} aria-label={open ? 'Close menu' : 'Open menu'} onClick={onClick}>
+    <span className="burger" aria-hidden="true"><i /><i /></span>
+  </button>
+);
 
 export const Chip = ({ kind = 'lock', children }) => <span className={`chip ${kind}`}>{children}</span>;
 

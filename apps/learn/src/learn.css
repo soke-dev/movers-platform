@@ -13,7 +13,10 @@
 .l-nav a { text-decoration: none; font: 600 15px var(--f-body); padding: 8px 12px; border-radius: 9px; color: var(--ink-2) }
 .l-nav a:hover { background: var(--mist); color: var(--ink) }
 .head-actions { display: flex; gap: 10px; align-items: center }
-.menu-btn { display: none; width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--ink); background: var(--paper); place-items: center; font-size: 20px; cursor: pointer; flex: none }
+.l-top { position: sticky; top: 0; z-index: 30; transition: background .2s, box-shadow .2s }
+.l-top.stuck { background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); box-shadow: 0 1px 0 var(--line), 0 12px 30px -24px rgba(18,13,36,.4) }
+.menu-btn { display: none; width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--ink); background: transparent; color: var(--ink); place-items: center; cursor: pointer; flex: none; transition: background .2s, color .2s }
+.menu-btn[aria-expanded="true"] { background: var(--ink); color: var(--paper) }
 .m-menu { position: absolute; left: 16px; right: 16px; top: calc(100% - 6px); z-index: 40; background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 8px; box-shadow: 6px 6px 0 var(--violet); display: flex; flex-direction: column }
 .m-menu a { display: flex; align-items: center; justify-content: space-between; padding: 14px; font: 700 17px var(--f-body); border-radius: 10px; text-decoration: none; color: var(--ink) }
 .m-menu a:hover { background: var(--mist) }

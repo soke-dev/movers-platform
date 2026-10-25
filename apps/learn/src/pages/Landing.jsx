@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Icon, Logo, QR, useApi, useAuth, naira, fmtDay, fmtShort, daysUntil, weekLabel, COLORS, GROUPS, ADDRESS, PHONE_DISPLAY, LEARN_URL, SPACE_URL, Loading, ThemeToggle } from '@movers/ui';
+import { Icon, Logo, QR, useApi, useAuth, naira, fmtDay, fmtShort, daysUntil, weekLabel, COLORS, GROUPS, ADDRESS, PHONE_DISPLAY, LEARN_URL, SPACE_URL, Loading, ThemeToggle, MenuButton, useScrolled } from '@movers/ui';
 
 const addDays = (d, n) => {
   const x = new Date(d);
@@ -40,6 +40,7 @@ export function planRows(skills, weeks) {
 function Header({ cohort }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const stuck = useScrolled();
   const links = [['#skills', 'Skills'], ['#plan', '8-week plan'], ['#fees', 'Fees'], ['#faq', 'FAQ'], ['#visit', 'Visit us']];
   return (
     <>
@@ -50,7 +51,7 @@ function Header({ cohort }) {
           <Link to="/apply?kind=full">Reserve a seat <Icon name="arrow" /></Link>
         </div></div>
       )}
-      <header className="l-head wrap">
+      <div className={`l-top${stuck ? ' stuck' : ''}`}><header className="l-head wrap">
         <Link className="brand" to="/"><Logo /><span>movers <b>learn</b></span></Link>
         <nav className="l-nav" aria-label="Sections">{links.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
         <div className="head-actions">
@@ -59,7 +60,7 @@ function Header({ cohort }) {
           {/* Phones: a round account button instead (log in, or the dashboard once logged in). */}
           <Link className="m-account" to={user ? '/dashboard' : '/login'} aria-label={user ? 'My dashboard' : 'Log in'} title={user ? 'My dashboard' : 'Log in'}><Icon name="user" /></Link>
           <Link className="btn pink" to="/apply?kind=full"><span className="long">Apply now</span><span className="short">Apply</span></Link>
-          <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
+          <MenuButton open={open} onClick={() => setOpen(!open)} />
         </div>
         {open && (
           <div className="m-menu" onClick={() => setOpen(false)}>
@@ -68,7 +69,7 @@ function Header({ cohort }) {
             <div className="m-theme" onClick={(e) => e.stopPropagation()}><span>Dark theme</span><ThemeToggle variant="switch" /></div>
           </div>
         )}
-      </header>
+      </header></div>
     </>
   );
 }

@@ -15,4 +15,4 @@ export { PayFlow } from './PayFlow.jsx';
 export { QR } from './QR.jsx';
 export { DashShell } from './Shell.jsx';
 export { AuthPage, AuthModal, PaymentReturn } from './pages.jsx';
-export { Chip, PayChip, Loading, ErrorBox, Empty, Field, Receipt, Table, useTableLabels } from './bits.jsx';
+export { Chip, PayChip, Loading, ErrorBox, Empty, Field, Receipt, Table, useTableLabels, useScrolled, MenuButton } from './bits.jsx';

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Icon, Logo, useApi, useAuth, Loading, ErrorBox, naira, ADDRESS, PHONE_DISPLAY, LEARN_URL, ThemeToggle } from '@movers/ui';
+import { Icon, Logo, useApi, useAuth, Loading, ErrorBox, naira, ADDRESS, PHONE_DISPLAY, LEARN_URL, ThemeToggle, MenuButton, useScrolled } from '@movers/ui';
 import { BookingWidget } from '../components/BookingWidget.jsx';
 
 /** Soft topographic rings, like the flier. */
@@ -27,6 +27,7 @@ function LandingPage() {
   const { user } = useAuth();
   const { data, error, loading } = useApi('/public/space');
   const [open, setOpen] = useState(false);
+  const stuck = useScrolled();
   const [bookType, setBookType] = useState('desk');
   if (loading) return <Loading />;
   if (error) return <div className="wrap" style={{ paddingBlock: 40 }}><ErrorBox error={error} /></div>;
@@ -41,28 +42,28 @@ function LandingPage() {
   const nav = [['#pricing', 'Pricing'], ['#host', 'Host an event'], ['#book', 'Book']];
   return (
     <>
+      <div className={`s-top${stuck ? ' stuck' : ''}`}><header className="s-head wrap">
+        <Link className="brand" to="/"><Logo tone="#fff" /><span>movers <b>space</b></span></Link>
+        <nav className="s-nav">{nav.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
+        <div className="s-actions">
+          <ThemeToggle variant="switch" />
+          {user ? <Link className="btn wline hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn wline hide-m" to="/login">Log in</Link>}
+          {/* Phones: a round account button instead (log in, or the dashboard once logged in). */}
+          <Link className="m-account" to={user ? '/dashboard' : '/login'} aria-label={user ? 'My dashboard' : 'Log in'} title={user ? 'My dashboard' : 'Log in'}><Icon name="user" /></Link>
+          <a className="btn amber" href="#book"><span className="long">Book now</span><span className="short">Book</span></a>
+          <MenuButton open={open} onClick={() => setOpen(!open)} />
+        </div>
+        {open && (
+          <div className="m-menu" onClick={() => setOpen(false)}>
+            {nav.map(([h, l]) => <a key={h} href={h}>{l} <Icon name="arrow" /></a>)}
+            {user ? <Link to="/dashboard">My dashboard <Icon name="arrow" /></Link> : <Link to="/login">Log in <Icon name="arrow" /></Link>}
+            <div className="m-theme" onClick={(e) => e.stopPropagation()}><span>Dark theme</span><ThemeToggle variant="switch" /></div>
+          </div>
+        )}
+      </header></div>
       <div className="s-band">
         <Contour className="a" cx={300} cy={240} rings={11} base={14} step={19} seed={1.2} sx={1.25} w={620} h={520} />
         <Contour className="b" cx={260} cy={260} rings={9} base={30} step={22} seed={4.1} sx={0.8} w={520} h={520} />
-        <header className="s-head wrap">
-          <Link className="brand" to="/"><Logo tone="#fff" /><span>movers <b>space</b></span></Link>
-          <nav className="s-nav">{nav.map(([h, l]) => <a key={h} href={h}>{l}</a>)}</nav>
-          <div className="s-actions">
-            <ThemeToggle variant="switch" />
-            {user ? <Link className="btn wline hide-m" to="/dashboard">My dashboard</Link> : <Link className="btn wline hide-m" to="/login">Log in</Link>}
-            {/* Phones: a round account button instead (log in, or the dashboard once logged in). */}
-            <Link className="m-account" to={user ? '/dashboard' : '/login'} aria-label={user ? 'My dashboard' : 'Log in'} title={user ? 'My dashboard' : 'Log in'}><Icon name="user" /></Link>
-            <a className="btn amber" href="#book"><span className="long">Book now</span><span className="short">Book</span></a>
-            <button className="menu-btn" aria-expanded={open} aria-label="Open menu" onClick={() => setOpen(!open)}><Icon name="menu" /></button>
-          </div>
-          {open && (
-            <div className="m-menu" onClick={() => setOpen(false)}>
-              {nav.map(([h, l]) => <a key={h} href={h}>{l} <Icon name="arrow" /></a>)}
-              {user ? <Link to="/dashboard">My dashboard <Icon name="arrow" /></Link> : <Link to="/login">Log in <Icon name="arrow" /></Link>}
-              <div className="m-theme" onClick={(e) => e.stopPropagation()}><span>Dark theme</span><ThemeToggle variant="switch" /></div>
-            </div>
-          )}
-        </header>
         <div className="s-hero wrap">
           <h1 className="s-display" aria-label="Work. Meet. Create. Events.">
             <span>Work<i className="sq am" /></span><span>Meet<i className="sq or" /></span><span>Create<i className="sq am" /></span><span>Events<i className="sq or" /></span>
