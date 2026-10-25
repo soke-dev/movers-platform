@@ -46,7 +46,7 @@ function Header({ cohort }) {
       {cohort && (
         <div className="l-bar"><div className="wrap l-bar-in">
           <span className="dot" />
-          <span className="msg">{cohort.name} · {cohort.code} starts <b>{fmtDay(cohort.startDate)}</b><span className="hide-s"> · {cohort.seatsLeft} seats left</span></span>
+          <span className="msg"><span className="hide-s">{cohort.name} · </span>{cohort.code} starts <b>{fmtDay(cohort.startDate)}</b><span className="hide-s"> · {cohort.seatsLeft} seats left</span></span>
           <Link to="/apply?kind=full">Reserve a seat <Icon name="arrow" /></Link>
         </div></div>
       )}
@@ -331,7 +331,7 @@ function LandingPage() {
         <div className="foot-cols">
           <div><span className="brand"><Logo /><span>movers <b>learn</b></span></span><p>A Movers Tech company.</p></div>
           <div><h4>Learn</h4><a href="#skills">The skills</a><a href="#plan">8-week plan</a><a href="#fees">Fees</a><a href="#faq">FAQ</a></div>
-          <div><h4>Movers Space</h4><a href={SPACE_URL}>Workspace</a><a href={`${SPACE_URL}/#host`}>Event hall</a><a href={`${SPACE_URL}/#book`}>Book a space</a></div>
+          <div><h4>Movers Space</h4><a href={SPACE_URL}>Workspace</a><a href={`${SPACE_URL}/#host`}>Rent the space</a><a href={`${SPACE_URL}/#book`}>Book a space</a></div>
           <div><h4>Account</h4><Link to="/login">Log in</Link><Link to="/apply?kind=full">Apply now</Link></div>
         </div>
         <div className="foot"><span>© {new Date().getFullYear()} Movers Learn</span><span>{ADDRESS}</span></div>

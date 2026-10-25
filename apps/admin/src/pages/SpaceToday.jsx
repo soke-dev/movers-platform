@@ -24,7 +24,7 @@ export default function SpaceToday() {
         <div className="card"><span className="k">In now</span><div className="big">{data.inNow.length}</div><p className="sub">{data.desks - data.inNow.length} desks free</p></div>
         <div className="card"><span className="k">Visits today</span><div className="big">{data.inNow.length + data.leftToday.length}</div><p className="sub">{data.leftToday.length} already left</p></div>
         <div className="card"><span className="k">Rooms today</span><div className="big">{data.bookings.length}</div><p className="sub">Meeting rooms and hall</p></div>
-        <div className="card"><span className="k">Next hall event</span><div className="big" style={{ fontSize: 22 }}>{data.nextHall ? fmtDay(data.nextHall.start) : 'None'}</div><p className="sub">{data.nextHall ? `${data.nextHall.who} · ${data.nextHall.people} guests` : 'Nothing booked'}</p></div>
+        <div className="card"><span className="k">Next whole-space booking</span><div className="big" style={{ fontSize: 22 }}>{data.nextHall ? fmtDay(data.nextHall.start) : 'None'}</div><p className="sub">{data.nextHall ? `${data.nextHall.who} · ${data.nextHall.people} guests` : 'Nothing booked'}</p></div>
       </div>
       <div className="d-grid">
         <div className="panel">

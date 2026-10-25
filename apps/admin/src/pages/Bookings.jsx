@@ -27,11 +27,11 @@ export default function Bookings() {
   };
   return (
     <div className="pg">
-      <PageHead eyebrow="Movers Space" title="Bookings" desc="Desk passes, the meeting room and the event hall. Confirm payments under Payments; cancel to free a slot.">
+      <PageHead eyebrow="Movers Space" title="Bookings" desc="Desk passes, the meeting room and the entire space. Confirm payments under Payments; cancel to free a slot.">
         <button className="btn ink" onClick={() => setAdd(true)}><Icon name="plus" />Add booking</button>
       </PageHead>
       <div className="tabs" role="tablist">
-        {[['upcoming', 'Upcoming'], ['desk', 'Desk passes'], ['room', 'Meeting room'], ['hall', 'Event hall'], ['past', 'Past'], ['cancelled', 'Cancelled']].map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}>{l}</button>)}
+        {[['upcoming', 'Upcoming'], ['desk', 'Desk passes'], ['room', 'Meeting room'], ['hall', 'Entire space'], ['past', 'Past'], ['cancelled', 'Cancelled']].map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}>{l}</button>)}
       </div>
       <div className="panel">
         {loading ? <Loading /> : error ? <ErrorBox error={error} /> : data.bookings.length + (data.passes?.length || 0) ? (
@@ -100,7 +100,7 @@ function AddBooking({ onClose, onDone }) {
     setErr('');
     const order = f.type === 'room'
       ? { type: 'room', date: f.date, people: Number(f.people) }
-      : { type: 'hall', date: f.date, pkg: f.pkg || s.hallPackages[0]?.id, guests: Number(f.guests), layout: f.layout, addons: {}, deposit: false };
+      : { type: 'hall', date: f.date, pkg: f.pkg || s.hallPackages[0]?.id, guests: Number(f.guests), addons: {}, deposit: false };
     try {
       const r = await api('/admin/space/orders', { method: 'POST', body: { userId: who.id, order, paid: f.paid } });
       toast(`Booked for ${who.name}. Reference ${r.reference}.`);
@@ -118,7 +118,7 @@ function AddBooking({ onClose, onDone }) {
           <>
             <div className="row" style={{ justifyContent: 'space-between' }}><b>{who.name}</b><button className="linkbtn" onClick={() => setWho(null)}>Change</button></div>
             <div className="fields">
-              <div className="field"><label htmlFor="ab-t">Space</label><select id="ab-t" value={f.type} onChange={set('type')}><option value="room">Meeting room</option><option value="hall">Event hall</option></select></div>
+              <div className="field"><label htmlFor="ab-t">Space</label><select id="ab-t" value={f.type} onChange={set('type')}><option value="room">Meeting room</option><option value="hall">Entire space</option></select></div>
               <div className="field"><label htmlFor="ab-d">Date</label><input id="ab-d" type="date" min={isoDate()} value={f.date} onChange={set('date')} /></div>
               {f.type === 'room' ? (
                 <>
@@ -127,7 +127,6 @@ function AddBooking({ onClose, onDone }) {
               ) : (
                 <>
                   {s.hallPackages.length > 1 && <div className="field"><label htmlFor="ab-k">Time block</label><select id="ab-k" value={f.pkg} onChange={set('pkg')}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {naira(p.price)}</option>)}</select></div>}
-                  <div className="field"><label htmlFor="ab-l">Layout</label><select id="ab-l" value={f.layout} onChange={set('layout')}>{s.layouts.map((l) => <option key={l.id} value={l.id}>{l.name} · up to {l.capacity}</option>)}</select></div>
                   <div className="field"><label htmlFor="ab-g">Guests</label><input id="ab-g" type="number" min="1" value={f.guests} onChange={set('guests')} /></div>
                 </>
               )}

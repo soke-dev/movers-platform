@@ -126,7 +126,7 @@ export async function createOrder(userId, input) {
   }
 
   if (q.clash) throw new HttpError(409, 'That time overlaps another booking. Pick another start time or date.');
-  const label = input.type === 'room' ? q.room.name : `Event hall · ${q.layout.name}`;
+  const label = q.room.name;
   const when = `${q.start.toDateString().slice(0, 10)}, ${String(q.start.getHours()).padStart(2, '0')}:00–${String(q.end.getHours()).padStart(2, '0')}:00`;
   const booking = await prisma.booking.create({
     data: {
@@ -135,7 +135,7 @@ export async function createOrder(userId, input) {
       start: q.start,
       end: q.end,
       people: input.type === 'room' ? input.people : input.guests,
-      layout: input.type === 'hall' ? q.layout.name : '',
+      layout: '',
       details: { lines: q.lines, package: q.package?.name || null, addons: input.addons || {} },
       subtotal: q.subtotal,
       vat: q.vat,

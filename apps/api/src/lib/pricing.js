@@ -40,20 +40,20 @@ export function quoteRoom(s, room, { people, addons }) {
   return finish(s, lines, lines.reduce((t, [, amt]) => t + amt, 0));
 }
 
-export function quoteHall(s, { pkg, guests, layout, addons = {}, deposit }) {
-  const p = s.hallPackages.find((x) => x.id === pkg);
+/** Renting the entire space for the day. `space` is its room row, whose capacity is the most guests. */
+export function quoteHall(s, space, { pkg, guests, addons = {}, deposit }) {
+  const p = s.hallPackages.find((x) => x.id === pkg) || s.hallPackages[0];
   if (!p) throw bad('Choose a time block.');
-  const l = s.layouts.find((x) => x.id === layout);
-  if (!l) throw bad('Choose a layout.');
-  if (guests > l.capacity) throw bad(`${l.name} seats ${l.capacity}. Pick another layout or fewer guests.`);
-  const lines = [[`${p.name} · ${l.name}`, p.price], ...addonLines(s, addons, guests)];
-  return { ...finish(s, lines, lines.reduce((t, [, amt]) => t + amt, 0), deposit ? 0.5 : 1), package: p, layout: l };
+  if (guests > space.capacity) throw bad(`The space holds up to ${space.capacity} guests. For a bigger group, call or WhatsApp us.`);
+  const lines = [[`${space.name} · ${p.name.toLowerCase()}`, p.price], ...addonLines(s, addons, guests)];
+  return { ...finish(s, lines, lines.reduce((t, [, amt]) => t + amt, 0), deposit ? 0.5 : 1), package: p };
 }
 
 /** Works out the time window of a room or hall booking. */
 export function bookingWindow(s, input) {
   if (input.type === 'room') return { start: atHour(input.date, ROOM_DAY.open), end: atHour(input.date, ROOM_DAY.close) };
-  const p = s.hallPackages.find((x) => x.id === input.pkg);
+  // The entire space is booked by the day; with one time block it needn't be chosen.
+  const p = s.hallPackages.find((x) => x.id === input.pkg) || s.hallPackages[0];
   if (!p) throw bad('Choose a time block.');
   return { start: atHour(input.date, p.start), end: atHour(input.date, p.end) };
 }

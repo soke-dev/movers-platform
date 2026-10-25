@@ -83,7 +83,7 @@ async function main() {
 
   const rooms = [
     { slug: 'meeting-room', name: 'Meeting room', kind: 'MEETING', capacity: 10, dayRate: 30000 },
-    { slug: 'hall', name: 'Event hall', kind: 'HALL', capacity: 30, dayRate: 0 }
+    { slug: 'hall', name: 'Entire space', kind: 'HALL', capacity: 30, dayRate: 0 }
   ];
   for (const room of rooms) await prisma.room.upsert({ where: { slug: room.slug }, update: {}, create: room });
 

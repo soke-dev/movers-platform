@@ -59,13 +59,13 @@ export default function SpaceSettings() {
         </div>
       </div>
       <div className="panel">
-        <div className="panel-h"><h2>Event hall</h2></div>
+        <div className="panel-h"><h2>Entire space</h2></div>
         <div className="fields">
           {f.hallPackages.map((p, i) => input(`h-${p.id}`, `${f.hallPackages.length === 1 ? 'Price per day' : p.name} (${p.start}:00–${p.end}:00), ₦`, p.price, (e) => setF({ ...f, hallPackages: f.hallPackages.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)) }), { key: p.id }))}
         </div>
       </div>
       <div className="panel">
-        <div className="panel-h"><h2>Add-ons, for the meeting room and event hall</h2></div>
+        <div className="panel-h"><h2>Add-ons, for the meeting room and entire space</h2></div>
         <div className="fields">
           {f.addons.map((a, i) => input(`ad-${a.id}`, `${a.name}${a.perGuest ? ' (per guest)' : ''}, ₦`, a.price, (e) => setF({ ...f, addons: f.addons.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)) }), { key: a.id }))}
         </div>

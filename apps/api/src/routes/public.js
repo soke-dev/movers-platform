@@ -62,9 +62,8 @@ export const BookingInput = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('hall'),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    pkg: z.string(),
+    pkg: z.string().optional(),
     guests: z.coerce.number().int().min(1).max(200),
-    layout: z.string(),
     addons: z.record(z.boolean()).optional(),
     deposit: z.boolean().optional()
   })
@@ -91,7 +90,7 @@ export async function quoteBooking(input, user) {
     return { ...quoteRoom(s, room, input), room, start, end, clash };
   }
   const hall = rooms.find((x) => x.kind === 'HALL');
-  const q = quoteHall(s, input);
+  const q = quoteHall(s, hall, input);
   const clash = (await conflicts(hall.id, start, end)).length > 0;
   return { ...q, room: hall, start, end, clash };
 }

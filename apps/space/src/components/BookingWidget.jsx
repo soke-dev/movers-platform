@@ -12,7 +12,7 @@ const hh = (h) => `${String(h).padStart(2, '0')}:00`;
 const PASSES = [['day', 'Day pass', 'dayPass'], ['weekly', 'Weekly pass (6 days)', 'weekly'], ['monthly', 'Monthly hot desk', 'monthly']];
 
 /**
- * Book a desk, a meeting room or the event hall. Prices come from the server.
+ * Book a desk, the meeting room or the entire space. Prices come from the server.
  * Used on the public Space site and inside the member dashboard.
  */
 export function BookingWidget({ space, initialType = 'desk', inDashboard = false, onBooked }) {
@@ -23,7 +23,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   const [f, setF] = useState({
     date: tomorrow(), pass: 'day', people: 1,
     rpeople: 4, raddons: {},
-    pkg: s.hallPackages[0].id, guests: 20, layout: s.layouts[1]?.id || s.layouts[0].id,
+    pkg: s.hallPackages[0].id, guests: 20,
     addons: {}, deposit: true
   });
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
@@ -41,7 +41,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   const body = useMemo(() => {
     if (type === 'desk') return { type, pass: f.pass, date: f.date, people: Number(f.people) };
     if (type === 'room') return { type, date: f.date, people: Number(f.rpeople), addons: f.raddons };
-    return { type, date: f.date, pkg: f.pkg, guests: Number(f.guests), layout: f.layout, addons: f.addons, deposit: f.deposit };
+    return { type, date: f.date, pkg: f.pkg, guests: Number(f.guests), addons: f.addons, deposit: f.deposit };
   }, [type, f]);
 
   useEffect(() => {
@@ -62,11 +62,11 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
   const pkg = s.hallPackages.find((p) => p.id === f.pkg);
   // The meeting room is booked for the whole day, 9:00–18:00.
   const mine = type === 'room' ? [9, 18] : type === 'hall' ? [pkg.start, pkg.end] : null;
-  const layout = s.layouts.find((l) => l.id === f.layout);
+  const whole = space.rooms.find((r) => r.kind === 'HALL');
   const desksShort = type === 'desk' && f.date === isoDate() && avail.data && Number(f.people) > avail.data.desksFree;
   const blocked = !quote || quote.error || quote.clash || desksShort;
 
-  const what = type === 'desk' ? `${PASSES.find((p) => p[0] === f.pass)[1]}${f.people > 1 ? ` · ${f.people} people` : ''}` : type === 'room' ? (quote?.room?.name || 'Meeting room') : `Event hall · ${layout.name}`;
+  const what = type === 'desk' ? `${PASSES.find((p) => p[0] === f.pass)[1]}${f.people > 1 ? ` · ${f.people} people` : ''}` : type === 'room' ? (quote?.room?.name || 'Meeting room') : (whole?.name || 'Entire space');
   const when = type === 'desk' ? `From ${fmtDay(f.date)}` : `${fmtDay(f.date)} · ${type === 'room' ? 'full day, ' : ''}${hh(mine[0])}–${hh(mine[1])}`;
 
   async function book() {
@@ -88,7 +88,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
     <div className="book">
       <div className="book-form">
         <div className="seg" role="tablist">
-          {[['desk', 'Workspace'], ['room', 'Meeting room'], ['hall', 'Event hall']].map(([k, l]) => (
+          {[['desk', 'Workspace'], ['room', 'Meeting room'], ['hall', 'Entire space']].map(([k, l]) => (
             <button key={k} role="tab" aria-selected={type === k} onClick={() => setType(k)}>{l}</button>
           ))}
         </div>
@@ -123,8 +123,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
               {s.hallPackages.length > 1
                 ? <div className="field"><label htmlFor="b-pkg">Time block</label><select id="b-pkg" value={f.pkg} onChange={(e) => set('pkg', e.target.value)}>{s.hallPackages.map((p) => <option key={p.id} value={p.id}>{p.name} · {hh(p.start)}–{hh(p.end)} · {naira(p.price)}</option>)}</select></div>
                 : <div className="field"><span className="lbl">Booking</span><p style={{ marginTop: 6 }}>Full day, {hh(pkg.start)}–{hh(pkg.end)} · {naira(pkg.price)}</p></div>}
-              <div className="field"><label htmlFor="b-lay">Layout</label><select id="b-lay" value={f.layout} onChange={(e) => set('layout', e.target.value)}>{s.layouts.map((l) => <option key={l.id} value={l.id}>{l.name} · up to {l.capacity}</option>)}</select></div>
-              <div className="field"><label htmlFor="b-g">Guests</label><input id="b-g" type="number" min="1" max={layout.capacity} value={f.guests} onChange={(e) => set('guests', Math.max(1, Number(e.target.value) || 1))} /><span className="hint">{layout.name} seats up to {layout.capacity}.</span></div>
+              <div className="field"><label htmlFor="b-g">Guests</label><input id="b-g" type="number" min="1" max={hallCap} value={f.guests} onChange={(e) => set('guests', Math.max(1, Number(e.target.value) || 1))} /><span className="hint">The whole space is yours for the day, for up to {hallCap} guests.</span></div>
               <div className="field wide"><span className="lbl">Add-ons</span><div className="checkrow">
                 {s.addons.map((a) => (
                   <label className="tog" key={a.id}><input type="checkbox" checked={Boolean(f.addons[a.id])} onChange={(e) => set('addons', { ...f.addons, [a.id]: e.target.checked })} />{a.name} {naira(a.price)}{a.perGuest ? '/guest' : ''}</label>
@@ -142,7 +141,7 @@ export function BookingWidget({ space, initialType = 'desk', inDashboard = false
           </div>
         ) : (
           <div>
-            <div className="avail-h"><span>{type === 'room' ? 'Meeting room' : 'Event hall'} on <b>{fmtDay(f.date)}</b></span><span className="legend" style={{ margin: 0 }}><span><i style={{ background: '#C3D2EE' }} />Booked</span><span><i style={{ background: 'var(--blue)' }} />Your pick</span></span></div>
+            <div className="avail-h"><span>{type === 'room' ? 'Meeting room' : 'Entire space'} on <b>{fmtDay(f.date)}</b></span><span className="legend" style={{ margin: 0 }}><span><i style={{ background: '#C3D2EE' }} />Booked</span><span><i style={{ background: 'var(--blue)' }} />Your pick</span></span></div>
             <div className="timeline">
               {busySlots.map(([a, b], i) => <span key={i} className="blk busy" style={{ left: pct(a), width: `calc(${pct(b)} - ${pct(a)})` }} title={`Booked ${hh(a)}–${hh(b)}`} />)}
               {mine && <span className={`blk mine${quote?.clash ? ' clash' : ''}`} style={{ left: pct(mine[0]), width: `calc(${pct(Math.min(22, mine[1]))} - ${pct(mine[0])})` }} />}

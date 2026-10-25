@@ -3,7 +3,7 @@
 .learn .eyebrow { color: var(--violet) }
 .l-bar { background: var(--ink); color: rgba(255,255,255,.85); font-size: 13px }
 .l-bar-in { display: flex; align-items: center; gap: 10px; padding-block: 9px }
-.l-bar .msg { flex: 1; min-width: 0 }
+.l-bar .msg { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .l-bar b { color: #fff }
 .l-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); flex: none }
 .l-bar a { color: var(--lime); font-weight: 600; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; flex: none }
