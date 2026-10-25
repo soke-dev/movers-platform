@@ -8,11 +8,12 @@ const addDays = (d, n) => {
   return x;
 };
 export const weekSpan = (start, a, b = a) => `${fmtShort(addDays(start, 7 * (a - 1)))} – ${fmtShort(addDays(start, 7 * (b - 1) + 5))}`;
+// Brand marks for the tutor's social links (filled, 24×24).
 const TUTOR_LINKS = [
-  ['LinkedIn', 'https://www.linkedin.com/in/soke-decentra-567b39181/'],
-  ['X', 'https://x.com/Soke_Decentra'],
-  ['GitHub', 'https://github.com/soke-dev'],
-  ['TikTok', 'https://www.tiktok.com/@soke_decentra']
+  ['LinkedIn', 'https://www.linkedin.com/in/soke-decentra-567b39181/', 'M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z'],
+  ['X', 'https://x.com/Soke_Decentra', 'M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.59-6.64 7.59H.47l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41z'],
+  ['GitHub', 'https://github.com/soke-dev', 'M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57l-.02-2.04c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3'],
+  ['TikTok', 'https://www.tiktok.com/@soke_decentra', 'M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03a10.7 10.7 0 0 1-5.82-1.9c-.01 2.92.01 5.84-.02 8.75a7.64 7.64 0 0 1-1.35 3.94 7.45 7.45 0 0 1-5.91 3.21 7.29 7.29 0 0 1-4.08-1.03 7.55 7.55 0 0 1-3.65-5.71c-.02-.5-.03-1-.01-1.49a7.53 7.53 0 0 1 8.73-6.68c.02 1.48-.04 2.96-.04 4.44a3.43 3.43 0 0 0-4.38 2.12c-.21.51-.15 1.07-.14 1.61a3.34 3.34 0 0 0 3.5 2.87 3.3 3.3 0 0 0 2.77-1.61c.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z']
 ];
 export const skillColors = (s) => COLORS[s.color] || COLORS.violet;
 
@@ -274,10 +275,16 @@ function LandingPage() {
           </ul>
           <div className="tutor-links">
             <a className="btn line" href="https://sokeportfolio.vercel.app/" target="_blank" rel="noreferrer">See the portfolio <Icon name="arrow" /></a>
-            {TUTOR_LINKS.map(([l, h]) => <a key={l} className="tutor-social" href={h} target="_blank" rel="noreferrer">{l}</a>)}
+            <div className="tutor-icons">
+              {TUTOR_LINKS.map(([l, h, d]) => (
+                <a key={l} className="tutor-social" href={h} target="_blank" rel="noreferrer" aria-label={`Soke on ${l}`} title={l}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d={d} /></svg>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
-        <figure><img src="/soke.jpg" alt="Soke, lead tutor of the Movers tech class" loading="lazy" width="800" height="1000" /></figure>
+        <figure><img src="/soke.jpg" alt="Soke, lead tutor of the Movers tech class" loading="lazy" width="560" height="560" /></figure>
       </section>
 
       <section className="sec wrap" id="fees">
