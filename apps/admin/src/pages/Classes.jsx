@@ -6,7 +6,7 @@ const DAYS = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'S
 const BLANK = {
   name: 'Full-Stack Tech Class', code: '', startDate: '', demoDate: '', weeks: 8, days: [1, 3, 5, 6],
   scheduleText: 'Mon, Wed, Fri 10:00–15:00 · Sat 10:00–17:00', saturdayNote: 'Saturday’s class also covers revision for missed sessions',
-  location: 'Lab A, 20A Etete Road, GRA, Benin City', seats: 25, fullPrice: 250000, skillPrice: 50000, allowTwoPayments: true,
+  location: 'Movers Hub, 20A Etete Road, GRA, Benin City', seats: 25, fullPrice: 250000, skillPrice: 50000, allowTwoPayments: true,
   supportNote: 'Online support while you learn', mentorshipNote: '3 months of mentorship after the class',
   laptopNote: 'Bring your own laptop to every class, charged, with its charger. Windows, Mac or Linux all work.'
 };

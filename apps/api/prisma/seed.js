@@ -39,7 +39,7 @@ async function main() {
         days: [1, 3, 5, 6],
         scheduleText: 'Mon, Wed, Fri 10:00–15:00 · Sat 10:00–17:00',
         saturdayNote: 'Saturday’s class also covers revision for missed sessions',
-        location: 'Lab A, 20A Etete Road, GRA, Benin City',
+        location: 'Movers Hub, 20A Etete Road, GRA, Benin City',
         seats: 25,
         fullPrice: 250000,
         skillPrice: 50000,

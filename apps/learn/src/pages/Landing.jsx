@@ -80,13 +80,10 @@ function ClassCard({ c }) {
       <div className="cc-row1"><span className="live-dot">{c.seatsLeft > 0 ? 'Enrolling now' : 'Class full'}</span><span className="mono">{c.code}</span></div>
       <h2>{c.name}</h2>
       <dl className="cc-dl">
-        <div><dt>Starts</dt><dd>{fmtDay(c.startDate)} {new Date(c.startDate).getFullYear()}{days > 0 ? ` · in ${days} days` : ''}</dd></div>
+        <div><dt>Starts</dt><dd>{fmtDay(c.startDate)} {new Date(c.startDate).getFullYear()}{days > 1 ? ` · in ${days} days` : days === 1 ? ' · tomorrow' : ''}</dd></div>
         <div><dt>Length</dt><dd>{c.weeks} weeks · Demo Day {fmtDay(c.demoDate)}</dd></div>
-        <div><dt>Classes</dt><dd>{c.scheduleText}</dd></div>
-        {c.saturdayNote && <div><dt>Saturdays</dt><dd>{c.saturdayNote}</dd></div>}
+        <div><dt>Classes</dt><dd>{c.scheduleText}{c.saturdayNote && <span className="cc-note">({c.saturdayNote})</span>}</dd></div>
         <div><dt>Where</dt><dd>{c.location}</dd></div>
-        <div><dt>Seats</dt><dd>{c.seatsLeft} of {c.seats} left</dd></div>
-        <div><dt>Bring</dt><dd>Your own laptop</dd></div>
         {(c.supportNote || c.mentorshipNote) && <div><dt>Included</dt><dd>{[c.supportNote, c.mentorshipNote].filter(Boolean).join(', then ')}</dd></div>}
       </dl>
       <div className="cc-price">
