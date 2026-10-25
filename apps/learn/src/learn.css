@@ -194,3 +194,24 @@
 .nc-date small { font: 600 11px var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--violet) }
 .nc-date b { font: 800 22px/1.05 var(--f-display) }
 .nc-title { font: 700 16px/1.3 var(--f-body); overflow-wrap: break-word }
+
+/* Less white: a soft wash behind the hero and tinted bands behind alternate sections.
+   Full-width colour without changing the layout (box-shadow + clip-path paint past the .wrap). */
+.learn { --band: #EFEAFD; --wash: #F8F6FF }
+:root[data-theme="dark"] .learn { --band: #0E0C16; --wash: #120F1C }
+.learn { --glow-lime: rgba(214, 242, 11, .26); --glow-violet: rgba(101, 38, 240, .16) }
+:root[data-theme="dark"] .learn { --glow-lime: rgba(214, 242, 11, .07); --glow-violet: rgba(101, 38, 240, .18) }
+/* The wash is painted edge to edge behind the hero (the page hides sideways overflow). */
+.learn .hero { position: relative; isolation: isolate }
+.learn .hero::before {
+  content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw);
+  background: radial-gradient(45% 75% at 10% 15%, var(--glow-lime), transparent 70%), radial-gradient(40% 85% at 92% 5%, var(--glow-violet), transparent 70%), var(--wash)
+}
+.learn #plan, .learn #fees {
+  background: var(--band); box-shadow: 0 0 0 100vmax var(--band); clip-path: inset(0 -100vmax);
+  padding-block: 80px; margin-top: 96px
+}
+@media (max-width: 560px) { .learn #plan, .learn #fees { padding-block: 56px; margin-top: 64px } }
+.learn #plan + .sec, .learn #fees + .sec { padding-top: 88px }
+.learn #fees .pcard { background: var(--paper) }
+.learn .class-card { box-shadow: 0 28px 60px -34px rgba(101, 38, 240, .35) }
