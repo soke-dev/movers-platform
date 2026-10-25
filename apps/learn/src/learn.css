@@ -121,6 +121,20 @@
 .demo figure { margin: 0 }
 .demo img { display: block; width: 100%; aspect-ratio: 1000/656; object-fit: cover; border-radius: 16px }
 .demo figcaption { font-size: 13px; color: var(--ink-3); margin-top: 10px }
+.tutor { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 64px; align-items: center }
+@media (max-width: 900px) { .tutor { grid-template-columns: 1fr; gap: 28px } .tutor figure { order: -1; max-width: 420px } }
+.tutor figure { margin: 0 18px 18px 0; position: relative; isolation: isolate }
+.tutor figure::before { content: ""; position: absolute; inset: 18px -18px -18px 18px; border-radius: 20px; background: var(--lime); z-index: -1 }
+.tutor img { display: block; width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; border-radius: 20px }
+.sec-head p.tutor-role { font: 600 15px var(--f-body); color: var(--ink) }
+.tutor-facts { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
+@media (max-width: 560px) { .tutor-facts { grid-template-columns: 1fr } }
+.tutor-facts li { border-top: 2px solid var(--ink); padding-top: 12px; display: flex; flex-direction: column; gap: 2px }
+.tutor-facts b { font: 800 17px var(--f-display) }
+.tutor-facts span { font-size: 14px; color: var(--ink-2) }
+.tutor-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px }
+.tutor-social { padding: 9px 14px; border: 1px solid var(--rule); border-radius: 99px; font: 600 14px var(--f-body); color: var(--ink); text-decoration: none; background: var(--paper) }
+.tutor-social:hover { border-color: var(--ink) }
 .prices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px }
 @media (max-width: 1000px) { .prices { grid-template-columns: 1fr 1fr } }
 @media (max-width: 640px) { .prices { grid-template-columns: 1fr } }

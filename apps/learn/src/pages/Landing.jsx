@@ -8,6 +8,12 @@ const addDays = (d, n) => {
   return x;
 };
 export const weekSpan = (start, a, b = a) => `${fmtShort(addDays(start, 7 * (a - 1)))} – ${fmtShort(addDays(start, 7 * (b - 1) + 5))}`;
+const TUTOR_LINKS = [
+  ['LinkedIn', 'https://www.linkedin.com/in/soke-decentra-567b39181/'],
+  ['X', 'https://x.com/Soke_Decentra'],
+  ['GitHub', 'https://github.com/soke-dev'],
+  ['TikTok', 'https://www.tiktok.com/@soke_decentra']
+];
 export const skillColors = (s) => COLORS[s.color] || COLORS.violet;
 
 /** The questions people ask about the class, as [question, answer]. */
@@ -254,6 +260,24 @@ function LandingPage() {
           <p>Every class ends with Demo Day in the Movers Space hall. You get five minutes to show what you built to guests, teachers and fellow students. This class presents on {fmtDay(c.demoDate)}.</p>
           <div className="row" style={{ marginTop: 8 }}><a className="btn line" href={SPACE_URL}>See Movers Space <Icon name="arrow" /></a></div>
         </div>
+      </section>
+
+      <section className="sec wrap tutor" id="tutor">
+        <div className="sec-head" style={{ margin: 0 }}>
+          <p className="eyebrow">Lead tutor</p><h2>Learn from Soke.</h2>
+          <p className="tutor-role">Okotete Collins · CEO &amp; CTO of Money Moves</p>
+          <p>A software and blockchain developer from Benin City with more than six years of building products. Soke runs Money Moves, a self-custodial finance app, co-founded Sotechy Shop and led Movement Nigeria, running hackathons, meetups and workshops for developers.</p>
+          <ul className="tutor-facts">
+            <li><b>6+ years</b><span>building software</span></li>
+            <li><b>3 hackathon wins</b><span>incl. 1st at Linea Build</span></li>
+            <li><b>Web to Web3</b><span>React, Node, Flutter, Solidity, Move</span></li>
+          </ul>
+          <div className="tutor-links">
+            <a className="btn line" href="https://sokeportfolio.vercel.app/" target="_blank" rel="noreferrer">See the portfolio <Icon name="arrow" /></a>
+            {TUTOR_LINKS.map(([l, h]) => <a key={l} className="tutor-social" href={h} target="_blank" rel="noreferrer">{l}</a>)}
+          </div>
+        </div>
+        <figure><img src="/soke.jpg" alt="Soke, lead tutor of the Movers tech class" loading="lazy" width="800" height="1000" /></figure>
       </section>
 
       <section className="sec wrap" id="fees">
