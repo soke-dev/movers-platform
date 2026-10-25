@@ -82,7 +82,7 @@ function ClassCard({ c }) {
       <dl className="cc-dl">
         <div><dt>Starts</dt><dd>{fmtDay(c.startDate)} {new Date(c.startDate).getFullYear()}{days > 1 ? ` · in ${days} days` : days === 1 ? ' · tomorrow' : ''}</dd></div>
         <div><dt>Length</dt><dd>{c.weeks} weeks · Demo Day {fmtDay(c.demoDate)}</dd></div>
-        <div><dt>Classes</dt><dd>{c.scheduleText}{c.saturdayNote && <span className="cc-note">({c.saturdayNote})</span>}</dd></div>
+        <div><dt>Classes</dt><dd>{c.scheduleText}{c.saturdayNote && <span className="cc-note"> ({c.saturdayNote.replace(/^Saturday['’]s class\s*/i, '')})</span>}</dd></div>
         <div><dt>Where</dt><dd>{c.location}</dd></div>
         {(c.supportNote || c.mentorshipNote) && <div><dt>Included</dt><dd>{[c.supportNote, c.mentorshipNote].filter(Boolean).join(', then ')}</dd></div>}
       </dl>

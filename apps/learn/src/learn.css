@@ -38,7 +38,7 @@
 .cc-dl div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding-block: 10px; border-top: 1px solid var(--rule); font-size: 15px }
 .cc-dl dt { color: var(--ink-3); font-size: 13px; padding-top: 2px }
 .cc-dl dd { margin: 0; font-weight: 600 }
-.cc-dl .cc-note { display: block; font-weight: 500; font-size: 13px; color: var(--ink-2); margin-top: 3px }
+.cc-dl .cc-note { font-weight: 500; color: var(--ink-2) }
 .cc-price { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 }
 .cc-price div { background: var(--mist); border-radius: 12px; padding: 12px 14px }
 .cc-price b { display: block; font: 800 21px/1.1 var(--f-display); letter-spacing: -.02em }
