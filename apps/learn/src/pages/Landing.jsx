@@ -268,11 +268,6 @@ function LandingPage() {
           <p className="eyebrow">Lead tutor</p><h2>Learn from Soke.</h2>
           <p className="tutor-role">Okotete Collins · CEO &amp; CTO of Money Moves</p>
           <p>A software and blockchain developer from Benin City with more than six years of building products. Soke runs Money Moves, a self-custodial finance app, co-founded Sotechy Shop and led Movement Nigeria, running hackathons, meetups and workshops for developers.</p>
-          <ul className="tutor-facts">
-            <li><b>6+ years</b><span>building software</span></li>
-            <li><b>3 hackathon wins</b><span>incl. 1st at Linea Build</span></li>
-            <li><b>Web to Web3</b><span>React, Node, Flutter, Solidity, Move</span></li>
-          </ul>
           <div className="tutor-links">
             <a className="btn line" href="https://sokeportfolio.vercel.app/" target="_blank" rel="noreferrer">See the portfolio <Icon name="arrow" /></a>
             <div className="tutor-icons">

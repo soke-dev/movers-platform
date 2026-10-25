@@ -127,11 +127,6 @@
 .tutor img { display: block; width: 240px; height: 240px; border-radius: 50%; object-fit: cover; box-shadow: 10px 10px 0 var(--lime) }
 @media (max-width: 760px) { .tutor img { width: 150px; height: 150px; box-shadow: 7px 7px 0 var(--lime) } }
 .sec-head p.tutor-role { font: 600 15px var(--f-body); color: var(--ink) }
-.tutor-facts { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px }
-@media (max-width: 560px) { .tutor-facts { grid-template-columns: 1fr } }
-.tutor-facts li { border-top: 2px solid var(--ink); padding-top: 12px; display: flex; flex-direction: column; gap: 2px }
-.tutor-facts b { font: 800 17px var(--f-display) }
-.tutor-facts span { font-size: 14px; color: var(--ink-2) }
 .tutor-links { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px }
 .tutor-icons { display: flex; gap: 8px }
 .tutor-social { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--rule); border-radius: 50%; color: var(--ink); background: var(--paper); transition: background .15s, color .15s, border-color .15s }
